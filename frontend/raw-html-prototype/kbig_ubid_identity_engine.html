@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1F3A;--surface:#0F2035;--surface2:#142540;--surface3:#1A2E4A;--surface4:#1F3355;
+  --orange:#F26419;--orange2:#FF7A2E;--orangeA:rgba(242,100,25,0.12);
+  --teal2:#26A882;--tealA:rgba(38,168,130,0.12);
+  --amber2:#F5A623;--amberA:rgba(245,166,35,0.12);
+  --red2:#E74C3C;--redA:rgba(231,76,60,0.12);
+  --green2:#22B888;--greenA:rgba(34,184,136,0.12);
+  --purple:#8B7CF6;--purpleA:rgba(139,124,246,0.12);
+  --blue:#4A90D9;--blueA:rgba(74,144,217,0.12);
+  --text:#E8EDF5;--text2:#A8B8CF;--text3:#6B7E96;--text4:#4A5E78;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.2);
+}
+body{background:var(--navy);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;line-height:1.5;}
+.app{display:flex;min-height:100vh;}
+
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.logo-hex{width:32px;height:32px;background:var(--orange);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;}
+.logo-text{font-size:15px;font-weight:600;letter-spacing:-0.3px;}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;}
+.nav{padding:12px 0;flex:1;}
+.nav-section{padding:6px 18px 2px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 18px;cursor:pointer;color:var(--text2);font-size:13px;border-left:2px solid transparent;transition:all 0.15s;}
+.nav-item:hover{background:rgba(255,255,255,0.04);color:var(--text);}
+.nav-item.active{background:var(--orangeA);color:var(--orange2);border-left-color:var(--orange);}
+.nav-icon{width:15px;height:15px;opacity:0.65;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-badge{margin-left:auto;background:var(--red2);color:#fff;font-size:9px;font-weight:600;padding:1px 5px;border-radius:8px;}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px;}
+.topbar-title{font-size:15px;font-weight:600;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.ubid-search{background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:7px 14px;font-size:13px;color:var(--text);display:flex;align-items:center;gap:10px;cursor:text;width:340px;transition:border 0.15s;}
+.ubid-search:focus-within{border-color:var(--orange);}
+.ubid-search input{background:transparent;border:none;outline:none;color:var(--text);font-family:inherit;font-size:13px;flex:1;}
+.ubid-search input::placeholder{color:var(--text4);}
+.search-ico{width:14px;height:14px;flex-shrink:0;opacity:0.4;}
+.btn-primary{background:var(--orange);border:none;color:#fff;font-size:12px;font-weight:500;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:inherit;transition:opacity 0.15s;}
+.btn-primary:hover{opacity:0.88;}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2);font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.btn-ghost:hover{border-color:var(--border3);color:var(--text);}
+
+.content{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0;}
+
+.split{display:flex;flex:1;gap:0;}
+.left-panel{width:340px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.right-panel{flex:1;display:flex;flex-direction:column;overflow-y:auto;}
+
+.panel-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.panel-title{font-size:12px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;}
+.panel-count{font-size:11px;color:var(--text3);}
+
+.result-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
+.result-item:hover{background:rgba(255,255,255,0.03);}
+.result-item.selected{background:var(--orangeA);border-left:2px solid var(--orange);}
+.result-item.selected{padding-left:14px;}
+.ri-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.ri-name{font-size:13px;font-weight:500;color:var(--text);}
+.ri-ubid{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.ri-meta{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.status-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:0.4px;}
+.sp-active{background:var(--greenA);color:var(--green2);}
+.sp-dormant{background:var(--amberA);color:var(--amber2);}
+.sp-closed{background:var(--redA);color:var(--red2);}
+.sp-review{background:var(--orangeA);color:var(--orange2);}
+.conf-bar-mini{height:3px;border-radius:2px;background:var(--surface3);width:60px;overflow:hidden;}
+.conf-fill-mini{height:100%;border-radius:2px;}
+.conf-label{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;}
+.dept-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.dept-chip{font-size:9px;padding:2px 6px;border-radius:4px;background:var(--surface3);border:1px solid var(--border);color:var(--text3);}
+
+.detail-wrap{padding:16px;display:flex;flex-direction:column;gap:14px;}
+
+.ubid-card{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px;}
+.ubid-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.ubid-name{font-size:17px;font-weight:600;color:var(--text);letter-spacing:-0.3px;}
+.ubid-id{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+.ubid-status-big{font-size:10px;font-weight:600;padding:4px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.ubid-meta-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.meta-cell{display:flex;flex-direction:column;gap:3px;}
+.meta-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;}
+.meta-val{font-size:13px;font-weight:500;color:var(--text);font-family:'IBM Plex Mono',monospace;}
+
+.section-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3);margin-bottom:8px;}
+
+.sources-grid{display:flex;flex-direction:column;gap:6px;}
+.source-row{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color 0.15s;}
+.source-row:hover{border-color:var(--border2);}
+.source-row.linked{border-left:3px solid var(--green2);}
+.source-row.partial{border-left:3px solid var(--amber2);}
+.source-row.missing{border-left:3px solid var(--surface4);opacity:0.55;}
+.src-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:600;}
+.src-body{flex:1;}
+.src-name{font-size:12px;font-weight:500;color:var(--text);}
+.src-id{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:1px;}
+.src-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.src-conf{font-size:12px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.src-date{font-size:10px;color:var(--text3);}
+.src-link-badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+.slb-linked{background:var(--greenA);color:var(--green2);}
+.slb-partial{background:var(--amberA);color:var(--amber2);}
+.slb-missing{background:var(--surface3);color:var(--text3);}
+
+.graph-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;position:relative;}
+.graph-svg{width:100%;display:block;}
+
+.explain-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.explain-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);}
+.explain-row:last-child{border-bottom:none;}
+.explain-factor{font-size:12px;color:var(--text2);flex:1;}
+.explain-bar{width:100px;height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;}
+.explain-fill{height:100%;border-radius:3px;}
+.explain-score{font-size:11px;font-weight:500;font-family:'IBM Plex Mono',monospace;width:32px;text-align:right;}
+
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:12px;padding:8px 0;}
+.tl-line-col{display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0;}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.tl-line{width:1px;flex:1;background:var(--border);margin-top:3px;}
+.tl-body{flex:1;padding-bottom:8px;}
+.tl-title{font-size:12px;font-weight:500;color:var(--text);}
+.tl-meta{font-size:11px;color:var(--text3);margin-top:1px;}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab{padding:9px 16px;font-size:12px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;}
+.tab.active{color:var(--orange2);border-bottom-color:var(--orange);}
+
+.empty-state{padding:32px;text-align:center;color:var(--text3);font-size:13px;}
+.empty-icon{font-size:28px;margin-bottom:8px;opacity:0.3;}
+</style>
+</head><body>
+
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">K-BIG UBID Identity Engine — search businesses, view linked department records, confidence scores, and identity graph.</h2>
+
+<div class="app">
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-hex">K</div>
+    <div><div class="logo-text">K-BIG</div><div class="logo-sub">Karnataka</div></div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Core</div>
+    <div class="nav-item" onclick="sendPrompt('Go back to the K-BIG main dashboard')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      UBID Registry
+    </div>
+    <div class="nav-item" onclick="sendPrompt('Build Part 3: Activity Intelligence Engine for K-BIG')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 10l3-4 3 2 3-5 3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Activity Engine
+    </div>
+    <div class="nav-item" onclick="sendPrompt('Build Part 4: Human Review Panel for K-BIG')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 1L10 6h5l-4 3 1.5 5L8 12l-4.5 2L5 9 1 6h5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      Review Queue
+      <span class="nav-badge">12</span>
+    </div>
+    <div class="nav-section">Intelligence</div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M10 10l4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Query Engine
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Risk Scoring
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M5 8h6M5 5h6M5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Audit Logs
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title">UBID Identity Engine</span>
+    <div class="topbar-right">
+      <div class="ubid-search">
+        <svg class="search-ico" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4"/><path d="M10 10l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <input type="text" placeholder="Search by name, GSTIN, PAN, UBID…" id="searchInput" oninput="filterResults(this.value)">
+      </div>
+      <button class="btn-ghost">Export</button>
+      <button class="btn-primary" onclick="sendPrompt('Add a new business record to the K-BIG UBID registry')">+ New UBID</button>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="left-panel">
+      <div class="panel-header">
+        <span class="panel-title">Results</span>
+        <span class="panel-count" id="resultCount">6 records</span>
+      </div>
+      <div id="resultsList"></div>
+    </div>
+
+    <div class="right-panel" id="detailPanel">
+      <div class="empty-state">
+        <div class="empty-icon">&#9632;</div>
+        <div>Select a business to view its identity record</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const businesses = [
+  {
+    id:0,
+    name:"Sri Lakshmi Engineering Works",
+    ubid:"UBID-KA-2024-08847",
+    gstin:"29AABCS1234F1Z5",
+    pan:"AABCS1234F",
+    status:"active",
+    conf:96,
+    type:"Manufacturing",
+    district:"Bengaluru Urban",
+    since:"2009",
+    sources:[
+      {name:"Shops & Estab.",id:"SE/BLR/2009/04412",conf:98,date:"Mar 2024",status:"linked",color:"#26A882"},
+      {name:"KSPCB",id:"KSPCB/KA/2018/08812",conf:94,date:"Jan 2024",status:"linked",color:"#4A90D9"},
+      {name:"BESCOM",id:"BESCOM/2009/HT/44210",conf:99,date:"Apr 2024",status:"linked",color:"#F5A623"},
+      {name:"Factories Dept.",id:"FAC/BLR/2011/00821",conf:92,date:"Feb 2024",status:"linked",color:"#8B7CF6"},
+      {name:"Labour Dept.",id:"LAB/KA/2012/11203",conf:88,date:"Dec 2023",status:"partial",color:"#FF7A2E"},
+      {name:"BWSSB",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+    ],
+    explain:[
+      {factor:"Name similarity",score:98,color:"#22B888"},
+      {factor:"GSTIN match",score:100,color:"#22B888"},
+      {factor:"Address match",score:91,color:"#26A882"},
+      {factor:"PAN cross-check",score:96,color:"#22B888"},
+      {factor:"Owner name",score:84,color:"#F5A623"},
+    ],
+    timeline:[
+      {dot:"#22B888",title:"UBID issued — 5 sources linked",meta:"Apr 2024 · Auto-match, confidence 96%"},
+      {dot:"#4A90D9",title:"KSPCB consent renewed",meta:"Jan 2024 · Env. clearance valid till 2026"},
+      {dot:"#FF7A2E",title:"Labour record partially matched",meta:"Dec 2023 · Address variance flagged"},
+      {dot:"#26A882",title:"Shops & Estab. licence renewed",meta:"Mar 2024 · Valid"},
+      {dot:"#F5A623",title:"BESCOM HT connection active",meta:"Continuous since 2009"},
+    ]
+  },
+  {
+    id:1,
+    name:"M/s Ananya Textiles Pvt. Ltd.",
+    ubid:"UBID-KA-2023-41920",
+    gstin:"29AANCA4521G1ZK",
+    pan:"AANCA4521G",
+    status:"review",
+    conf:73,
+    type:"Textiles",
+    district:"Bengaluru Urban",
+    since:"2015",
+    sources:[
+      {name:"Shops & Estab.",id:"SE/BLR/2015/11203",conf:88,date:"Feb 2024",status:"linked",color:"#26A882"},
+      {name:"KSPCB",id:"KSPCB/KA/2020/19910",conf:62,date:"Nov 2023",status:"partial",color:"#4A90D9"},
+      {name:"BESCOM",id:"BESCOM/2015/LT/88201",conf:91,date:"Mar 2024",status:"linked",color:"#F5A623"},
+      {name:"Factories Dept.",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+      {name:"Labour Dept.",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+      {name:"BWSSB",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+    ],
+    explain:[
+      {factor:"Name similarity",score:71,color:"#F5A623"},
+      {factor:"GSTIN match",score:100,color:"#22B888"},
+      {factor:"Address match",score:58,color:"#E74C3C"},
+      {factor:"PAN cross-check",score:88,color:"#22B888"},
+      {factor:"Owner name",score:44,color:"#E74C3C"},
+    ],
+    timeline:[
+      {dot:"#F5A623",title:"Conflict flagged — name mismatch",meta:"Feb 2024 · GSTIN vs Shops record differ"},
+      {dot:"#F5A623",title:"Sent to human review queue",meta:"Feb 2024 · Awaiting reviewer"},
+      {dot:"#22B888",title:"BESCOM record linked",meta:"Mar 2024"},
+      {dot:"#4A90D9",title:"KSPCB partial match",meta:"Nov 2023 · Address variance"},
+    ]
+  },
+  {
+    id:2,
+    name:"Bengaluru Cold Chain Logistics",
+    ubid:"UBID-KA-2024-09012",
+    gstin:"29AABCB9821H1ZQ",
+    pan:"AABCB9821H",
+    status:"active",
+    conf:91,
+    type:"Logistics",
+    district:"Bengaluru Rural",
+    since:"2018",
+    sources:[
+      {name:"Shops & Estab.",id:"SE/BLR/2018/22104",conf:95,date:"Jan 2024",status:"linked",color:"#26A882"},
+      {name:"BESCOM",id:"BESCOM/2018/HT/90211",conf:97,date:"Apr 2024",status:"linked",color:"#F5A623"},
+      {name:"Factories Dept.",id:"FAC/BLR/2019/04410",conf:89,date:"Mar 2024",status:"linked",color:"#8B7CF6"},
+      {name:"Labour Dept.",id:"LAB/KA/2019/44201",conf:90,date:"Jan 2024",status:"linked",color:"#FF7A2E"},
+      {name:"KSPCB",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+      {name:"BWSSB",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+    ],
+    explain:[
+      {factor:"Name similarity",score:93,color:"#22B888"},
+      {factor:"GSTIN match",score:100,color:"#22B888"},
+      {factor:"Address match",score:89,color:"#26A882"},
+      {factor:"PAN cross-check",score:95,color:"#22B888"},
+      {factor:"Owner name",score:78,color:"#F5A623"},
+    ],
+    timeline:[
+      {dot:"#22B888",title:"UBID issued — 4 sources linked",meta:"Mar 2024 · Auto-match 91%"},
+      {dot:"#8B7CF6",title:"Factories Dept. record linked",meta:"Mar 2024"},
+      {dot:"#FF7A2E",title:"Labour Dept. record matched",meta:"Jan 2024"},
+      {dot:"#F5A623",title:"BESCOM HT active",meta:"Continuous since 2018"},
+    ]
+  },
+  {
+    id:3,
+    name:"Ravi Stone Crushers",
+    ubid:"UBID-KA-2021-27543",
+    gstin:"29ABRSC7721K1ZZ",
+    pan:"ABRSC7721K",
+    status:"dormant",
+    conf:81,
+    type:"Mining / Quarrying",
+    district:"Tumkur",
+    since:"2014",
+    sources:[
+      {name:"Shops & Estab.",id:"SE/TMK/2014/00982",conf:96,date:"Apr 2022",status:"linked",color:"#26A882"},
+      {name:"Factories Dept.",id:"FAC/TMK/2014/00110",conf:84,date:"Apr 2022",status:"linked",color:"#8B7CF6"},
+      {name:"KSPCB",id:"KSPCB/KA/2016/04421",conf:79,date:"Mar 2022",status:"partial",color:"#4A90D9"},
+      {name:"BESCOM",id:"BESCOM/2014/LT/20091",conf:88,date:"Sep 2022",status:"linked",color:"#F5A623"},
+      {name:"Labour Dept.",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+      {name:"BWSSB",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+    ],
+    explain:[
+      {factor:"Name similarity",score:96,color:"#22B888"},
+      {factor:"GSTIN match",score:100,color:"#22B888"},
+      {factor:"Address match",score:82,color:"#26A882"},
+      {factor:"PAN cross-check",score:91,color:"#22B888"},
+      {factor:"Owner name",score:74,color:"#F5A623"},
+    ],
+    timeline:[
+      {dot:"#E74C3C",title:"Dormancy flag raised",meta:"Oct 2023 · No signal in 19 months"},
+      {dot:"#F5A623",title:"BESCOM usage near-zero",meta:"Sep 2022 · Last active reading"},
+      {dot:"#4A90D9",title:"KSPCB consent lapsed",meta:"Mar 2022 · Renewal pending"},
+      {dot:"#22B888",title:"UBID issued",meta:"Jun 2021 · 4 sources linked"},
+    ]
+  },
+  {
+    id:4,
+    name:"Aishwarya Pharma Distributors",
+    ubid:"UBID-KA-2024-09104",
+    gstin:"29AAPCA8812D1ZR",
+    pan:"AAPCA8812D",
+    status:"active",
+    conf:99,
+    type:"Pharmaceutical",
+    district:"Mysuru",
+    since:"2011",
+    sources:[
+      {name:"Shops & Estab.",id:"SE/MYS/2011/07712",conf:99,date:"Feb 2024",status:"linked",color:"#26A882"},
+      {name:"KSPCB",id:"KSPCB/KA/2013/10021",conf:98,date:"Mar 2024",status:"linked",color:"#4A90D9"},
+      {name:"BESCOM",id:"BESCOM/2011/LT/50022",conf:100,date:"Apr 2024",status:"linked",color:"#F5A623"},
+      {name:"Factories Dept.",id:"FAC/MYS/2012/01120",conf:97,date:"Jan 2024",status:"linked",color:"#8B7CF6"},
+      {name:"Labour Dept.",id:"LAB/KA/2013/20011",conf:99,date:"Mar 2024",status:"linked",color:"#FF7A2E"},
+      {name:"BWSSB",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+    ],
+    explain:[
+      {factor:"Name similarity",score:99,color:"#22B888"},
+      {factor:"GSTIN match",score:100,color:"#22B888"},
+      {factor:"Address match",score:98,color:"#22B888"},
+      {factor:"PAN cross-check",score:100,color:"#22B888"},
+      {factor:"Owner name",score:97,color:"#22B888"},
+    ],
+    timeline:[
+      {dot:"#22B888",title:"UBID issued — 5 sources linked",meta:"Feb 2024 · Confidence 99%"},
+      {dot:"#FF7A2E",title:"Labour compliance current",meta:"Mar 2024"},
+      {dot:"#4A90D9",title:"KSPCB consent renewed",meta:"Mar 2024 · Valid till 2027"},
+      {dot:"#8B7CF6",title:"Factories licence renewed",meta:"Jan 2024"},
+    ]
+  },
+  {
+    id:5,
+    name:"Karnataka Granite Exports",
+    ubid:"UBID-KA-2022-31100",
+    gstin:"29AAKGE5512J1ZM",
+    pan:"AAKGE5512J",
+    status:"review",
+    conf:68,
+    type:"Exports / Mining",
+    district:"Kolar",
+    since:"2006",
+    sources:[
+      {name:"Shops & Estab.",id:"SE/KLR/2006/00321",conf:82,date:"Jun 2023",status:"linked",color:"#26A882"},
+      {name:"KSPCB",id:"KSPCB/KA/2009/00841",conf:71,date:"Jul 2022",status:"partial",color:"#4A90D9"},
+      {name:"BESCOM",id:"BESCOM/2006/HT/10041",conf:79,date:"Aug 2023",status:"partial",color:"#F5A623"},
+      {name:"Factories Dept.",id:"FAC/KLR/2007/00080",conf:66,date:"May 2022",status:"partial",color:"#8B7CF6"},
+      {name:"Labour Dept.",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+      {name:"BWSSB",id:"—",conf:0,date:"—",status:"missing",color:"#4A5E78"},
+    ],
+    explain:[
+      {factor:"Name similarity",score:68,color:"#F5A623"},
+      {factor:"GSTIN match",score:100,color:"#22B888"},
+      {factor:"Address match",score:54,color:"#E74C3C"},
+      {factor:"PAN cross-check",score:82,color:"#26A882"},
+      {factor:"Owner name",score:51,color:"#E74C3C"},
+    ],
+    timeline:[
+      {dot:"#F5A623",title:"Possible duplicate flagged",meta:"Sep 2023 · Overlaps UBID-KA-2019-08821"},
+      {dot:"#F5A623",title:"Address discrepancy detected",meta:"Aug 2023 · 3 different addresses across depts"},
+      {dot:"#22B888",title:"UBID originally issued",meta:"Mar 2022 · Partial match 68%"},
+    ]
+  }
+];
+
+let selected = 0;
+
+function statusColor(s){
+  return s==='active'?'#22B888':s==='dormant'?'#F5A623':s==='review'?'#FF7A2E':'#E74C3C';
+}
+function statusPill(s){
+  return s==='active'?'sp-active':s==='dormant'?'sp-dormant':s==='review'?'sp-review':'sp-closed';
+}
+
+function renderList(items){
+  const el=document.getElementById('resultsList');
+  document.getElementById('resultCount').textContent=items.length+' record'+(items.length===1?'':'s');
+  el.innerHTML=items.map(b=>`
+    <div class="result-item${b.id===selected?' selected':''}" onclick="selectBiz(${b.id})">
+      <div class="ri-top">
+        <div class="ri-name">${b.name}</div>
+      </div>
+      <div class="ri-ubid">${b.ubid}</div>
+      <div class="ri-meta">
+        <span class="status-pill ${statusPill(b.status)}">${b.status}</span>
+        <div class="conf-bar-mini"><div class="conf-fill-mini" style="width:${b.conf}%;background:${b.conf>85?'#22B888':b.conf>65?'#F5A623':'#E74C3C'}"></div></div>
+        <span class="conf-label">${b.conf}%</span>
+      </div>
+      <div class="dept-chips">
+        ${b.sources.filter(s=>s.status==='linked').map(s=>`<span class="dept-chip">${s.name.split(' ')[0]}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterResults(q){
+  const filtered=q?businesses.filter(b=>b.name.toLowerCase().includes(q.toLowerCase())||b.ubid.toLowerCase().includes(q.toLowerCase())||b.gstin.toLowerCase().includes(q.toLowerCase())):businesses;
+  renderList(filtered);
+}
+
+function selectBiz(id){
+  selected=id;
+  renderList(businesses);
+  renderDetail(businesses[id]);
+}
+
+function confColor(c){return c>=85?'#22B888':c>=65?'#F5A623':'#E74C3C';}
+
+function renderDetail(b){
+  const linked=b.sources.filter(s=>s.status==='linked').length;
+  const partial=b.sources.filter(s=>s.status==='partial').length;
+
+  document.getElementById('detailPanel').innerHTML=`
+    <div class="tabs">
+      <div class="tab active">Identity record</div>
+      <div class="tab">Source links</div>
+      <div class="tab">Audit trail</div>
+    </div>
+    <div class="detail-wrap">
+
+      <div class="ubid-card">
+        <div class="ubid-card-top">
+          <div>
+            <div class="ubid-name">${b.name}</div>
+            <div class="ubid-id">${b.ubid}</div>
+          </div>
+          <div class="ubid-status-big status-pill ${statusPill(b.status)}">${b.status}</div>
+        </div>
+        <div class="ubid-meta-row">
+          <div class="meta-cell"><div class="meta-label">GSTIN</div><div class="meta-val" style="font-size:11px">${b.gstin}</div></div>
+          <div class="meta-cell"><div class="meta-label">PAN</div><div class="meta-val">${b.pan}</div></div>
+          <div class="meta-cell"><div class="meta-label">Confidence</div><div class="meta-val" style="color:${confColor(b.conf)}">${b.conf}%</div></div>
+          <div class="meta-cell"><div class="meta-label">Type</div><div class="meta-val" style="font-size:11px;font-family:inherit">${b.type}</div></div>
+          <div class="meta-cell"><div class="meta-label">District</div><div class="meta-val" style="font-size:11px;font-family:inherit">${b.district}</div></div>
+          <div class="meta-cell"><div class="meta-label">Active since</div><div class="meta-val">${b.since}</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Department source links — ${linked} linked · ${partial} partial · ${6-linked-partial} missing</div>
+        <div class="sources-grid">
+          ${b.sources.map(s=>`
+            <div class="source-row ${s.status}" onclick="sendPrompt('Show full details for ${b.name} ${s.name} record')">
+              <div class="src-icon" style="background:${s.status==='missing'?'var(--surface3)':s.color+'22'};color:${s.color}">${s.name.substring(0,2).toUpperCase()}</div>
+              <div class="src-body">
+                <div class="src-name">${s.name}</div>
+                <div class="src-id">${s.id}</div>
+              </div>
+              <div class="src-right">
+                ${s.status!=='missing'?`<div class="src-conf" style="color:${confColor(s.conf)}">${s.conf}%</div>`:'<div class="src-conf" style="color:var(--text4)">—</div>'}
+                <div class="src-date">${s.date}</div>
+                <div class="src-link-badge slb-${s.status}">${s.status}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Match explainability — why ${b.conf}% confidence?</div>
+        <div class="explain-box">
+          ${b.explain.map(e=>`
+            <div class="explain-row">
+              <div class="explain-factor">${e.factor}</div>
+              <div class="explain-bar"><div class="explain-fill" style="width:${e.score}%;background:${e.color}"></div></div>
+              <div class="explain-score" style="color:${e.color}">${e.score}%</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Activity timeline</div>
+        <div class="timeline">
+          ${b.timeline.map((t,i)=>`
+            <div class="tl-item">
+              <div class="tl-line-col">
+                <div class="tl-dot" style="background:${t.dot}"></div>
+                ${i<b.timeline.length-1?'<div class="tl-line"></div>':''}
+              </div>
+              <div class="tl-body">
+                <div class="tl-title">${t.title}</div>
+                <div class="tl-meta">${t.meta}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;padding-top:4px;">
+        <button class="btn-ghost" onclick="sendPrompt('Show full audit log for UBID ${b.ubid}')">View audit log ↗</button>
+        <button class="btn-ghost" onclick="sendPrompt('Show identity graph connections for ${b.name}')">Identity graph ↗</button>
+        ${b.status==='review'?`<button class="btn-primary" onclick="sendPrompt('Open human review panel for ${b.name} ${b.ubid}')">Open in review panel ↗</button>`:''}
+      </div>
+
+    </div>
+  `;
+}
+
+renderList(businesses);
+selectBiz(0);
+</script>
+</body></html>
