@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import PlaceholderScreen from "./screens/PlaceholderScreen";
+import ReviewQueueScreen from "./screens/ReviewQueueScreen";
 import UbidRegistry from "./screens/UbidRegistry";
 import type { ScreenDefinition, ScreenId } from "./types";
 
@@ -65,6 +66,8 @@ function App() {
         <UbidRegistry onNavigate={setActiveScreen} />
       ) : activeScreen === "resolution" ? (
         <EntityResolutionScreen />
+      ) : activeScreen === "review" ? (
+        <ReviewQueueScreen />
       ) : (
         <PlaceholderScreen
           icon={activeDefinition.icon ?? BarChart3}

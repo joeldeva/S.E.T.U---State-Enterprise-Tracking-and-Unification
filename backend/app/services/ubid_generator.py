@@ -34,6 +34,12 @@ def generate_ubid(anchor_hash: str | None, source_ids: list[str]) -> str:
   return f"KA-UBID-{digest}"
 
 
+def generate_review_ubid(case_id: str, source_record_id: str) -> str:
+  key = f"review-created:{case_id}:{source_record_id}"
+  digest = hashlib.sha1(key.encode("utf-8")).hexdigest()[:12].upper()
+  return f"KA-UBID-{digest}"
+
+
 def canonical_name(records: list[dict[str, Any]]) -> str:
   ordered = sorted(
     records,
