@@ -1,16 +1,41 @@
-import { Download, Search } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Download, Search, X } from "lucide-react";
 import type { ReactNode } from "react";
 import type { ScreenDefinition, ScreenId } from "../types";
+import type { ModuleNarrative } from "../data/demoContent";
+
+interface GuidedDemoState {
+  enabled: boolean;
+  currentIndex: number;
+  total: number;
+  currentLabel: string;
+  canPrevious: boolean;
+  canNext: boolean;
+  onPrevious: () => void;
+  onNext: () => void;
+  onEnd: () => void;
+}
 
 interface AppShellProps {
   screens: ScreenDefinition[];
   activeScreen: ScreenId;
   activeTitle: string;
   onNavigate: (screen: ScreenId) => void;
+  complianceBadges: string[];
+  moduleNarrative: ModuleNarrative;
+  guidedDemo: GuidedDemoState;
   children: ReactNode;
 }
 
-function AppShell({ screens, activeScreen, activeTitle, onNavigate, children }: AppShellProps) {
+function AppShell({
+  screens,
+  activeScreen,
+  activeTitle,
+  onNavigate,
+  complianceBadges,
+  moduleNarrative,
+  guidedDemo,
+  children,
+}: AppShellProps) {
   const sections = ["Core", "Intelligence", "Governance"] as const;
 
   return (
@@ -77,6 +102,54 @@ function AppShell({ screens, activeScreen, activeTitle, onNavigate, children }: 
             </button>
           </div>
         </header>
+
+        <div className="compliance-badges" aria-label="K-BIG compliance guardrails">
+          {complianceBadges.map((badge) => (
+            <span key={badge}>
+              <CheckCircle2 size={13} aria-hidden="true" />
+              {badge}
+            </span>
+          ))}
+        </div>
+
+        {guidedDemo.enabled ? (
+          <section className="guided-demo-bar" aria-label="Guided demo controls">
+            <div>
+              <span className="guided-step-count">
+                Step {guidedDemo.currentIndex + 1} of {guidedDemo.total}
+              </span>
+              <strong>{guidedDemo.currentLabel}</strong>
+            </div>
+            <div className="guided-controls">
+              <button className="btn-ghost" type="button" onClick={guidedDemo.onPrevious} disabled={!guidedDemo.canPrevious}>
+                <ChevronLeft size={14} aria-hidden="true" />
+                Previous
+              </button>
+              <button className="btn-primary" type="button" onClick={guidedDemo.onNext} disabled={!guidedDemo.canNext}>
+                Next
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+              <button className="icon-button" type="button" onClick={guidedDemo.onEnd} aria-label="End guided demo">
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="judge-card-grid" aria-label="Judge-facing module explanation">
+          <article className="judge-card">
+            <span>What this module proves</span>
+            <p>{moduleNarrative.proves}</p>
+          </article>
+          <article className="judge-card">
+            <span>Why it matters for Karnataka Government</span>
+            <p>{moduleNarrative.matters}</p>
+          </article>
+          <article className="judge-card">
+            <span>How it satisfies non-negotiables</span>
+            <p>{moduleNarrative.satisfies}</p>
+          </article>
+        </section>
 
         <div className="content">{children}</div>
       </main>

@@ -14,9 +14,11 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
+import { complianceBadges, guidedDemoSteps, moduleNarratives } from "./data/demoContent";
 import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
 import BiQueryEngineScreen from "./screens/BiQueryEngineScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
+import ExecutiveDashboardScreen from "./screens/ExecutiveDashboardScreen";
 import IdentityGraphScreen from "./screens/IdentityGraphScreen";
 import PlaceholderScreen from "./screens/PlaceholderScreen";
 import PinCodeMapScreen from "./screens/PinCodeMapScreen";
@@ -52,22 +54,69 @@ const placeholderCopy: Record<Exclude<ScreenId, "ubid">, string> = {
 };
 
 function App() {
-  const [activeScreen, setActiveScreen] = useState<ScreenId>("ubid");
+  const [activeScreen, setActiveScreen] = useState<ScreenId>("dashboard");
+  const [isGuidedDemo, setIsGuidedDemo] = useState(false);
+  const [guidedStepIndex, setGuidedStepIndex] = useState(0);
 
   const activeDefinition = useMemo(
-    () => screens.find((screen) => screen.id === activeScreen) ?? screens[1],
+    () => screens.find((screen) => screen.id === activeScreen) ?? screens[0],
     [activeScreen],
   );
+
+  function navigate(screen: ScreenId) {
+    setActiveScreen(screen);
+
+    const stepIndex = guidedDemoSteps.findIndex((step) => step.id === screen);
+    if (stepIndex >= 0) {
+      setGuidedStepIndex(stepIndex);
+    }
+  }
+
+  function startGuidedDemo() {
+    setIsGuidedDemo(true);
+    setGuidedStepIndex(0);
+    setActiveScreen(guidedDemoSteps[0].id);
+  }
+
+  function moveGuidedDemo(delta: -1 | 1) {
+    setGuidedStepIndex((current) => {
+      const next = Math.max(0, Math.min(guidedDemoSteps.length - 1, current + delta));
+      setActiveScreen(guidedDemoSteps[next].id);
+      return next;
+    });
+  }
+
+  function endGuidedDemo() {
+    setIsGuidedDemo(false);
+    setActiveScreen("dashboard");
+  }
+
+  const currentStep = guidedDemoSteps[guidedStepIndex];
 
   return (
     <AppShell
       screens={screens}
       activeScreen={activeScreen}
       activeTitle={activeDefinition.label}
-      onNavigate={setActiveScreen}
+      onNavigate={navigate}
+      complianceBadges={complianceBadges}
+      moduleNarrative={moduleNarratives[activeScreen]}
+      guidedDemo={{
+        enabled: isGuidedDemo,
+        currentIndex: guidedStepIndex,
+        total: guidedDemoSteps.length,
+        currentLabel: currentStep.label,
+        canPrevious: guidedStepIndex > 0,
+        canNext: guidedStepIndex < guidedDemoSteps.length - 1,
+        onPrevious: () => moveGuidedDemo(-1),
+        onNext: () => moveGuidedDemo(1),
+        onEnd: endGuidedDemo,
+      }}
     >
-      {activeScreen === "ubid" ? (
-        <UbidRegistry onNavigate={setActiveScreen} />
+      {activeScreen === "dashboard" ? (
+        <ExecutiveDashboardScreen onNavigate={navigate} onStartDemo={startGuidedDemo} />
+      ) : activeScreen === "ubid" ? (
+        <UbidRegistry onNavigate={navigate} />
       ) : activeScreen === "resolution" ? (
         <EntityResolutionScreen />
       ) : activeScreen === "review" ? (
@@ -85,6 +134,7 @@ function App() {
           icon={activeDefinition.icon ?? BarChart3}
           title={activeDefinition.label}
           description={placeholderCopy[activeScreen]}
+          onNavigate={navigate}
         />
       )}
     </AppShell>
