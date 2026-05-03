@@ -93,7 +93,66 @@ export interface UbidRecord {
   canonical_name: string;
   linked_records: string[];
   candidate_records?: string[];
+  current_status?: string;
+  status_confidence?: number;
+  activity_score?: number;
+  activity_evidence_timeline?: ActivityTimelineEvent[];
+  activity_scoring_breakdown?: ActivityScoringBreakdown[];
+  last_activity_date?: string | null;
+  unmatched_event_count?: number;
   review_status?: string;
+}
+
+export interface ActivityEvent {
+  _id: string;
+  ubid?: string | null;
+  source: string;
+  source_record_id?: string;
+  event_type: string;
+  event_date: string;
+  activity_score?: number;
+  joined_confidence?: number;
+}
+
+export interface ActivityTimelineEvent {
+  event_id?: string;
+  event_type: string;
+  event_date: string | null;
+  source: string;
+  score: number;
+  reason: string;
+}
+
+export interface ActivityScoringBreakdown {
+  event_id?: string | null;
+  event_type: string;
+  event_date: string | null;
+  source: string;
+  rule: string;
+  score: number;
+  reason: string;
+}
+
+export interface ActivityStatus {
+  ubid: string;
+  status: "Active" | "Dormant" | "Closed" | "Insufficient Data";
+  confidence: number;
+  activity_score: number;
+  evidence_timeline: ActivityTimelineEvent[];
+  scoring_breakdown: ActivityScoringBreakdown[];
+  last_activity_date: string | null;
+  unmatched_event_count: number;
+}
+
+export interface ActivityRunResponse {
+  status: string;
+  mode: string;
+  hosted_llm_used: boolean;
+  counts: Record<"Active" | "Dormant" | "Closed" | "Insufficient Data", number>;
+  statuses: ActivityStatus[];
+  unmatched_events: ActivityEvent[];
+  unmatched_event_count: number;
+  audit_logs_written: number;
 }
 
 export interface AuditLog {
@@ -139,6 +198,16 @@ export function fetchUbids(): Promise<UbidRecord[]> {
 
 export function fetchAuditLogs(): Promise<AuditLog[]> {
   return apiFetch<AuditLog[]>("/api/audit-logs");
+}
+
+export function fetchActivityEvents(): Promise<ActivityEvent[]> {
+  return apiFetch<ActivityEvent[]>("/api/activity-events");
+}
+
+export function runActivityIntelligence(): Promise<ActivityRunResponse> {
+  return apiFetch<ActivityRunResponse>("/api/activity/run", {
+    method: "POST",
+  });
 }
 
 export function submitReviewDecision(

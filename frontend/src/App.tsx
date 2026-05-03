@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
+import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import PlaceholderScreen from "./screens/PlaceholderScreen";
 import ReviewQueueScreen from "./screens/ReviewQueueScreen";
@@ -68,6 +69,8 @@ function App() {
         <EntityResolutionScreen />
       ) : activeScreen === "review" ? (
         <ReviewQueueScreen />
+      ) : activeScreen === "activity" ? (
+        <ActivityIntelligenceScreen />
       ) : (
         <PlaceholderScreen
           icon={activeDefinition.icon ?? BarChart3}

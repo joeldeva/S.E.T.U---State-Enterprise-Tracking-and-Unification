@@ -515,6 +515,15 @@ ACTIVITY_EVENTS: list[dict[str, Any]] = [
     "joined_confidence": 68,
   },
   {
+    "_id": "event_008",
+    "ubid": "KA-UBID-9F03AD1C6B55",
+    "source": "Factories",
+    "event_type": "closure_application",
+    "event_date": "2026-01-18",
+    "activity_score": 0,
+    "joined_confidence": 88,
+  },
+  {
     "_id": "event_007",
     "ubid": None,
     "source": "BESCOM",
