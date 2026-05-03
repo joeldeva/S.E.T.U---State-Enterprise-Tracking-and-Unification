@@ -15,6 +15,7 @@ import {
 import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
 import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
+import BiQueryEngineScreen from "./screens/BiQueryEngineScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import PlaceholderScreen from "./screens/PlaceholderScreen";
 import ReviewQueueScreen from "./screens/ReviewQueueScreen";
@@ -71,6 +72,8 @@ function App() {
         <ReviewQueueScreen />
       ) : activeScreen === "activity" ? (
         <ActivityIntelligenceScreen />
+      ) : activeScreen === "queries" ? (
+        <BiQueryEngineScreen />
       ) : (
         <PlaceholderScreen
           icon={activeDefinition.icon ?? BarChart3}

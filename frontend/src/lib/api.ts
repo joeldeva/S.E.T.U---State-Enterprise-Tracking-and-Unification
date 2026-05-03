@@ -155,6 +155,32 @@ export interface ActivityRunResponse {
   audit_logs_written: number;
 }
 
+export interface PrebuiltQuery {
+  id: string;
+  title: string;
+  description: string;
+  risk_focus: string;
+}
+
+export interface QueryResultRow {
+  ubid: string;
+  canonical_name: string;
+  pin_code: string;
+  departments_linked: string[];
+  current_status: string;
+  last_inspection_date: string | null;
+  months_since_inspection: number | null;
+  risk_level: "High" | "Medium" | "Low";
+  evidence: string[];
+}
+
+export interface ActiveFactoriesQueryResponse {
+  query_id: string;
+  title: string;
+  result_count: number;
+  results: QueryResultRow[];
+}
+
 export interface AuditLog {
   _id: string;
   action: string;
@@ -208,6 +234,14 @@ export function runActivityIntelligence(): Promise<ActivityRunResponse> {
   return apiFetch<ActivityRunResponse>("/api/activity/run", {
     method: "POST",
   });
+}
+
+export function fetchPrebuiltQueries(): Promise<PrebuiltQuery[]> {
+  return apiFetch<PrebuiltQuery[]>("/api/queries/prebuilt");
+}
+
+export function runActiveFactoriesNoInspectionQuery(): Promise<ActiveFactoriesQueryResponse> {
+  return apiFetch<ActiveFactoriesQueryResponse>("/api/queries/active-factories-no-inspection");
 }
 
 export function submitReviewDecision(
