@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
+import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import PlaceholderScreen from "./screens/PlaceholderScreen";
 import UbidRegistry from "./screens/UbidRegistry";
 import type { ScreenDefinition, ScreenId } from "./types";
@@ -62,6 +63,8 @@ function App() {
     >
       {activeScreen === "ubid" ? (
         <UbidRegistry onNavigate={setActiveScreen} />
+      ) : activeScreen === "resolution" ? (
+        <EntityResolutionScreen />
       ) : (
         <PlaceholderScreen
           icon={activeDefinition.icon ?? BarChart3}
