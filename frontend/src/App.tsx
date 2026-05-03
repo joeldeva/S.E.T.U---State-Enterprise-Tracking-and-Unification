@@ -17,6 +17,7 @@ import AppShell from "./components/AppShell";
 import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
 import BiQueryEngineScreen from "./screens/BiQueryEngineScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
+import IdentityGraphScreen from "./screens/IdentityGraphScreen";
 import PlaceholderScreen from "./screens/PlaceholderScreen";
 import ReviewQueueScreen from "./screens/ReviewQueueScreen";
 import UbidRegistry from "./screens/UbidRegistry";
@@ -74,6 +75,8 @@ function App() {
         <ActivityIntelligenceScreen />
       ) : activeScreen === "queries" ? (
         <BiQueryEngineScreen />
+      ) : activeScreen === "graph" ? (
+        <IdentityGraphScreen />
       ) : (
         <PlaceholderScreen
           icon={activeDefinition.icon ?? BarChart3}

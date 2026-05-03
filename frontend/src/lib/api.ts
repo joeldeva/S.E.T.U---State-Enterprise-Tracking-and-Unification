@@ -95,6 +95,7 @@ export interface UbidRecord {
   candidate_records?: string[];
   current_status?: string;
   status_confidence?: number;
+  match_confidence?: number;
   activity_score?: number;
   activity_evidence_timeline?: ActivityTimelineEvent[];
   activity_scoring_breakdown?: ActivityScoringBreakdown[];

@@ -1581,6 +1581,167 @@ button:disabled {
   border-top: 0;
 }
 
+.identity-graph-screen {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.graph-screen-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.graph-selector {
+  min-width: 340px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.graph-selector span {
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-size: 10px;
+}
+
+.graph-selector select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  color: var(--text);
+  padding: 8px 10px;
+  outline: none;
+}
+
+.identity-graph-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 14px;
+  min-height: 600px;
+}
+
+.identity-graph-panel,
+.graph-evidence-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.identity-graph-panel {
+  overflow: hidden;
+  min-height: 600px;
+}
+
+.identity-graph-canvas {
+  width: 100%;
+  height: 600px;
+  background: radial-gradient(circle at 50% 50%, rgba(74, 144, 217, 0.08), transparent 42%), var(--surface);
+}
+
+.react-flow__pane {
+  cursor: grab;
+}
+
+.react-flow__node {
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
+}
+
+.react-flow__edge-textbg {
+  fill: var(--surface);
+}
+
+.react-flow__controls {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.react-flow__controls-button {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.react-flow__minimap {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+
+.rf-node-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  line-height: 1.25;
+}
+
+.rf-node-content span {
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 9px;
+}
+
+.rf-node-content strong {
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ubid-rf-node strong {
+  color: var(--orange2);
+}
+
+.graph-evidence-panel {
+  padding: 12px;
+  overflow: auto;
+}
+
+.graph-evidence-panel > p {
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.graph-selection-title {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.graph-selection-title span {
+  color: var(--orange2);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-size: 10px;
+}
+
+.graph-selection-title strong {
+  display: block;
+  color: var(--text);
+  margin-top: 3px;
+}
+
+.graph-evidence-list {
+  margin-top: 14px;
+}
+
+.graph-evidence-list p {
+  color: var(--text3);
+  font-size: 12px;
+}
+
 @media (max-width: 1050px) {
   .topbar {
     align-items: flex-start;
@@ -1607,6 +1768,7 @@ button:disabled {
   .review-header,
   .activity-header,
   .query-header,
+  .graph-screen-header,
   .review-summary-card,
   .activity-status-card,
   .candidate-row {
@@ -1624,8 +1786,14 @@ button:disabled {
   .activity-columns,
   .activity-metrics,
   .query-card-grid,
-  .query-evidence {
+  .query-evidence,
+  .identity-graph-layout {
     grid-template-columns: 1fr;
+  }
+
+  .graph-selector {
+    min-width: 0;
+    width: 100%;
   }
 
   .unmatched-event {
