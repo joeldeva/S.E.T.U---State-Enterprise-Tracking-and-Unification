@@ -1742,6 +1742,192 @@ button:disabled {
   font-size: 12px;
 }
 
+.pincode-map-screen {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.map-screen-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 14px;
+  min-height: 620px;
+}
+
+.map-panel,
+.pin-intel-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.map-panel {
+  overflow: hidden;
+  min-height: 620px;
+}
+
+.pincode-map-canvas {
+  width: 100%;
+  height: 620px;
+  background: var(--navy);
+}
+
+.maplibregl-ctrl-group {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+
+.maplibregl-ctrl button {
+  background-color: var(--surface2);
+}
+
+.maplibregl-ctrl button span {
+  filter: invert(1);
+}
+
+.pincode-marker {
+  border: 1px solid var(--border3);
+  border-radius: 50%;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  line-height: 1;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.pincode-marker:hover,
+.pincode-marker.selected {
+  transform: scale(1.08);
+  border-color: #fff;
+}
+
+.pincode-marker span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.pincode-marker strong {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 15px;
+  color: #fff;
+}
+
+.marker-active {
+  background: rgba(34, 184, 136, 0.78);
+}
+
+.marker-review {
+  background: rgba(255, 122, 46, 0.78);
+}
+
+.marker-risk {
+  background: rgba(231, 76, 60, 0.82);
+}
+
+.marker-closed {
+  background: rgba(107, 126, 150, 0.8);
+}
+
+.pin-intel-panel {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pin-title {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.pin-title span {
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--orange2);
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+
+.pin-title strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.pin-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pin-metric,
+.pin-risk-card,
+.pin-coverage-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.pin-metric span,
+.pin-risk-card span {
+  display: block;
+  color: var(--text3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.pin-metric strong,
+.pin-risk-card strong {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.pin-green strong {
+  color: var(--green2);
+}
+
+.pin-amber strong {
+  color: var(--amber2);
+}
+
+.pin-red strong {
+  color: var(--red2);
+}
+
+.pin-orange strong {
+  color: var(--orange2);
+}
+
+.pin-risk-card strong {
+  color: var(--red2);
+}
+
+.pin-risk-card p,
+.pin-coverage-card p {
+  color: var(--text3);
+  margin-top: 8px;
+  font-size: 12px;
+}
+
 @media (max-width: 1050px) {
   .topbar {
     align-items: flex-start;
@@ -1769,6 +1955,7 @@ button:disabled {
   .activity-header,
   .query-header,
   .graph-screen-header,
+  .map-screen-header,
   .review-summary-card,
   .activity-status-card,
   .candidate-row {
@@ -1787,7 +1974,8 @@ button:disabled {
   .activity-metrics,
   .query-card-grid,
   .query-evidence,
-  .identity-graph-layout {
+  .identity-graph-layout,
+  .map-layout {
     grid-template-columns: 1fr;
   }
 

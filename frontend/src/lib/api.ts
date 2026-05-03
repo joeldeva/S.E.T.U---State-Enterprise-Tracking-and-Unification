@@ -182,6 +182,19 @@ export interface ActiveFactoriesQueryResponse {
   results: QueryResultRow[];
 }
 
+export interface PinCodeSummary {
+  pin_code: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  active_count: number;
+  dormant_count: number;
+  closed_count: number;
+  pending_review_count: number;
+  high_risk_count: number;
+  department_coverage_gaps: string[];
+}
+
 export interface AuditLog {
   _id: string;
   action: string;
@@ -243,6 +256,10 @@ export function fetchPrebuiltQueries(): Promise<PrebuiltQuery[]> {
 
 export function runActiveFactoriesNoInspectionQuery(): Promise<ActiveFactoriesQueryResponse> {
   return apiFetch<ActiveFactoriesQueryResponse>("/api/queries/active-factories-no-inspection");
+}
+
+export function fetchPinCodeSummary(): Promise<PinCodeSummary[]> {
+  return apiFetch<PinCodeSummary[]>("/api/map/pincode-summary");
 }
 
 export function submitReviewDecision(

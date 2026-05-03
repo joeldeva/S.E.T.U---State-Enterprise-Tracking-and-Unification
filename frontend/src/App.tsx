@@ -19,6 +19,7 @@ import BiQueryEngineScreen from "./screens/BiQueryEngineScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import IdentityGraphScreen from "./screens/IdentityGraphScreen";
 import PlaceholderScreen from "./screens/PlaceholderScreen";
+import PinCodeMapScreen from "./screens/PinCodeMapScreen";
 import ReviewQueueScreen from "./screens/ReviewQueueScreen";
 import UbidRegistry from "./screens/UbidRegistry";
 import type { ScreenDefinition, ScreenId } from "./types";
@@ -77,6 +78,8 @@ function App() {
         <BiQueryEngineScreen />
       ) : activeScreen === "graph" ? (
         <IdentityGraphScreen />
+      ) : activeScreen === "map" ? (
+        <PinCodeMapScreen />
       ) : (
         <PlaceholderScreen
           icon={activeDefinition.icon ?? BarChart3}
