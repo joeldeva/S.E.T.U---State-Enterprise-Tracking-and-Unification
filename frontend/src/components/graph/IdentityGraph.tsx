@@ -32,12 +32,12 @@ interface IdentityGraphProps {
 }
 
 const departmentColors: Record<string, string> = {
-  factories: "#8B7CF6",
-  labour: "#FF7A2E",
-  shops: "#26A882",
-  kspcb: "#4A90D9",
-  bescom: "#F5A623",
-  bwssb: "#22B888",
+  factories: "#4F46E5",
+  labour: "#1D4ED8",
+  shops: "#047857",
+  kspcb: "#2563EB",
+  bescom: "#B45309",
+  bwssb: "#0F766E",
 };
 
 function statusFromCandidate(candidate: MatchCandidate): "auto_link" | "reviewer_approved" | "pending_review" | "rejected" {
@@ -48,10 +48,10 @@ function statusFromCandidate(candidate: MatchCandidate): "auto_link" | "reviewer
 }
 
 function edgeStyle(status: string) {
-  if (status === "auto_link") return { stroke: "#22B888", strokeWidth: 2.4 };
-  if (status === "reviewer_approved") return { stroke: "#26A882", strokeWidth: 2.4 };
-  if (status === "rejected") return { stroke: "#E74C3C", strokeWidth: 2, strokeDasharray: "4 4" };
-  return { stroke: "#F5A623", strokeWidth: 2, strokeDasharray: "6 4" };
+  if (status === "auto_link") return { stroke: "#047857", strokeWidth: 2.4 };
+  if (status === "reviewer_approved") return { stroke: "#0F766E", strokeWidth: 2.4 };
+  if (status === "rejected") return { stroke: "#B91C1C", strokeWidth: 2, strokeDasharray: "4 4" };
+  return { stroke: "#B45309", strokeWidth: 2, strokeDasharray: "6 4" };
 }
 
 function sourceDepartment(sourceId: string, candidate?: MatchCandidate) {
@@ -67,7 +67,7 @@ function sourceDepartment(sourceId: string, candidate?: MatchCandidate) {
 
 function departmentColor(department: string) {
   const key = department.toLowerCase().split(" ")[0];
-  return departmentColors[key] ?? "#A8B8CF";
+  return departmentColors[key] ?? "#64748B";
 }
 
 function recordNode(sourceId: string, index: number, total: number, candidate?: MatchCandidate): Node {
@@ -91,9 +91,9 @@ function recordNode(sourceId: string, index: number, total: number, candidate?: 
       ),
     },
     style: {
-      background: "#142540",
+      background: "#FFFFFF",
       border: `1px solid ${color}`,
-      color: "#E8EDF5",
+      color: "#0F172A",
       borderRadius: 8,
       width: 156,
       minHeight: 58,
@@ -119,9 +119,9 @@ function activityNode(event: ActivityEvent, index: number): Node {
       ),
     },
     style: {
-      background: "rgba(74, 144, 217, 0.12)",
-      border: "1px solid rgba(74, 144, 217, 0.65)",
-      color: "#E8EDF5",
+      background: "rgba(37, 99, 235, 0.08)",
+      border: "1px solid rgba(37, 99, 235, 0.35)",
+      color: "#0F172A",
       borderRadius: 8,
       width: 158,
       minHeight: 58,
@@ -160,9 +160,9 @@ function buildGraph(ubid: UbidRecord, matchCandidates: MatchCandidate[], activit
         ),
       },
       style: {
-        background: "rgba(242, 100, 25, 0.14)",
-        border: "1px solid rgba(242, 100, 25, 0.8)",
-        color: "#FF7A2E",
+        background: "rgba(29, 78, 216, 0.08)",
+        border: "1px solid rgba(29, 78, 216, 0.5)",
+        color: "#1E40AF",
         borderRadius: 8,
         width: 186,
         minHeight: 70,
@@ -191,8 +191,8 @@ function buildGraph(ubid: UbidRecord, matchCandidates: MatchCandidate[], activit
         explanation: candidate?.explanation ?? "Linked department record belongs to this UBID cluster.",
       },
       style: edgeStyle(status),
-      labelStyle: { fill: "#A8B8CF", fontSize: 10 },
-      labelBgStyle: { fill: "#0F2035", fillOpacity: 0.86 },
+      labelStyle: { fill: "#64748B", fontSize: 10 },
+      labelBgStyle: { fill: "#FFFFFF", fillOpacity: 0.9 },
     };
   });
 
@@ -207,9 +207,9 @@ function buildGraph(ubid: UbidRecord, matchCandidates: MatchCandidate[], activit
         confidence: event.joined_confidence ?? 0,
         explanation: `${event.source} ${event.event_type.split("_").join(" ")} on ${event.event_date}`,
       },
-      style: { stroke: "#4A90D9", strokeWidth: 1.8, strokeDasharray: "3 5" },
-      labelStyle: { fill: "#A8B8CF", fontSize: 10 },
-      labelBgStyle: { fill: "#0F2035", fillOpacity: 0.86 },
+      style: { stroke: "#2563EB", strokeWidth: 1.8, strokeDasharray: "3 5" },
+      labelStyle: { fill: "#64748B", fontSize: 10 },
+      labelBgStyle: { fill: "#FFFFFF", fillOpacity: 0.9 },
     });
   });
 
@@ -256,11 +256,11 @@ function IdentityGraph({ ubid, matchCandidates, activityEvents, onSelect }: Iden
           });
         }}
       >
-        <Background color="#1F3355" gap={18} />
+        <Background color="#CBD5E1" gap={18} />
         <MiniMap
           pannable
           zoomable
-          nodeColor={(node) => (node.id === ubid._id ? "#F26419" : node.id.startsWith("event_") ? "#4A90D9" : "#26A882")}
+          nodeColor={(node) => (node.id === ubid._id ? "#1D4ED8" : node.id.startsWith("event_") ? "#2563EB" : "#047857")}
         />
         <Controls />
       </ReactFlow>

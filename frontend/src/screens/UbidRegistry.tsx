@@ -15,9 +15,9 @@ function statusPill(status: BusinessStatus) {
 }
 
 function confidenceColor(confidence: number) {
-  if (confidence >= 85) return "#22B888";
-  if (confidence >= 65) return "#F5A623";
-  return "#E74C3C";
+  if (confidence >= 85) return "#047857";
+  if (confidence >= 65) return "#B45309";
+  return "#B91C1C";
 }
 
 function displayHash(hash: string) {

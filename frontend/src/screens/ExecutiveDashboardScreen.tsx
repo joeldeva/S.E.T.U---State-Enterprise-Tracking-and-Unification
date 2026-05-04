@@ -45,9 +45,9 @@ const priorityCases = [
 ];
 
 const statusDistribution = [
-  { label: "Active", count: 61, color: "#22B888" },
-  { label: "Dormant", count: 22, color: "#F5A623" },
-  { label: "Closed", count: 9, color: "#E74C3C" },
+  { label: "Active", count: 61, color: "#047857" },
+  { label: "Dormant", count: 22, color: "#B45309" },
+  { label: "Closed", count: 9, color: "#B91C1C" },
 ];
 
 const moduleShortcuts = [

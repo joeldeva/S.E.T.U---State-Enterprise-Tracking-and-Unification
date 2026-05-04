@@ -46,7 +46,7 @@ function PinCodeMap({ data, selectedPinCode, onSelect }: PinCodeMapProps) {
             id: "kbig-background",
             type: "background",
             paint: {
-              "background-color": "#0B1F3A",
+              "background-color": "#EEF3F8",
             },
           },
         ],

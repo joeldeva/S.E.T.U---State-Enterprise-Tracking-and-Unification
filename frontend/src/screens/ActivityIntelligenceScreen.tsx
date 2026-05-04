@@ -186,9 +186,9 @@ function statusClass(status: ActivityStatus["status"]) {
 }
 
 function confidenceColor(confidence: number) {
-  if (confidence >= 70) return "#22B888";
-  if (confidence >= 45) return "#F5A623";
-  return "#E74C3C";
+  if (confidence >= 70) return "#047857";
+  if (confidence >= 45) return "#B45309";
+  return "#B91C1C";
 }
 
 function countStatuses(statuses: ActivityStatus[]) {

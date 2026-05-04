@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -11,39 +11,41 @@
 }
 
 :root {
-  --navy: #0b1f3a;
-  --surface: #0f2035;
-  --surface2: #142540;
-  --surface3: #1a2e4a;
-  --surface4: #1f3355;
-  --orange: #f26419;
-  --orange2: #ff7a2e;
-  --orangeA: rgba(242, 100, 25, 0.12);
-  --teal2: #26a882;
-  --tealA: rgba(38, 168, 130, 0.12);
-  --amber2: #f5a623;
-  --amberA: rgba(245, 166, 35, 0.12);
-  --red2: #e74c3c;
-  --redA: rgba(231, 76, 60, 0.12);
-  --green2: #22b888;
-  --greenA: rgba(34, 184, 136, 0.12);
-  --purple: #8b7cf6;
-  --purpleA: rgba(139, 124, 246, 0.12);
-  --blue: #4a90d9;
-  --blueA: rgba(74, 144, 217, 0.12);
-  --text: #e8edf5;
-  --text2: #a8b8cf;
-  --text3: #6b7e96;
-  --text4: #4a5e78;
-  --border: rgba(255, 255, 255, 0.07);
-  --border2: rgba(255, 255, 255, 0.13);
-  --border3: rgba(255, 255, 255, 0.2);
+  --navy: #f5f7fb;
+  --surface: #ffffff;
+  --surface2: #ffffff;
+  --surface3: #eef3f8;
+  --surface4: #dbe4ef;
+  --orange: #1d4ed8;
+  --orange2: #1e40af;
+  --orangeA: rgba(29, 78, 216, 0.1);
+  --teal2: #047857;
+  --tealA: rgba(4, 120, 87, 0.1);
+  --amber2: #b45309;
+  --amberA: rgba(180, 83, 9, 0.12);
+  --red2: #b91c1c;
+  --redA: rgba(185, 28, 28, 0.1);
+  --green2: #047857;
+  --greenA: rgba(4, 120, 87, 0.1);
+  --purple: #4f46e5;
+  --purpleA: rgba(79, 70, 229, 0.1);
+  --blue: #2563eb;
+  --blueA: rgba(37, 99, 235, 0.1);
+  --text: #0f172a;
+  --text2: #334155;
+  --text3: #64748b;
+  --text4: #94a3b8;
+  --border: rgba(15, 23, 42, 0.08);
+  --border2: rgba(15, 23, 42, 0.14);
+  --border3: rgba(15, 23, 42, 0.22);
+  --shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.07);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.05), 0 10px 26px rgba(15, 23, 42, 0.04);
 }
 
 body {
   background: var(--navy);
   color: var(--text);
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Noto Sans", sans-serif;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -1953,7 +1955,7 @@ button:disabled {
 
 .compliance-badges {
   padding: 10px 24px;
-  background: rgba(15, 32, 53, 0.9);
+  background: #ffffff;
   border-bottom: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
@@ -2501,5 +2503,439 @@ button:disabled {
 
   .demo-flow-list {
     grid-template-columns: 1fr;
+  }
+}
+
+/* UI Refresh Phase: clean government-grade light theme overrides. */
+body {
+  background:
+    linear-gradient(180deg, rgba(37, 99, 235, 0.045), transparent 220px),
+    var(--navy);
+}
+
+.app {
+  background: transparent;
+}
+
+.sidebar {
+  background: #ffffff;
+  border-right: 1px solid var(--border);
+  box-shadow: 1px 0 0 rgba(15, 23, 42, 0.02);
+}
+
+.logo {
+  padding: 18px 18px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.logo-hex {
+  background: var(--orange);
+  border-radius: 8px;
+  clip-path: none;
+  box-shadow: 0 8px 20px rgba(29, 78, 216, 0.22);
+}
+
+.logo-text,
+.topbar-title {
+  color: var(--text);
+}
+
+.nav {
+  padding: 14px 10px;
+}
+
+.nav-section {
+  padding: 14px 8px 6px;
+  color: #728197;
+}
+
+.nav-item {
+  border-left: 0;
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: #475569;
+}
+
+.nav-item:hover {
+  background: #f1f5f9;
+  color: var(--text);
+}
+
+.nav-item.active {
+  background: var(--orangeA);
+  color: var(--orange2);
+  border-left-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(29, 78, 216, 0.1);
+}
+
+.nav-badge {
+  background: var(--redA);
+  color: var(--red2);
+  border: 1px solid rgba(185, 28, 28, 0.14);
+}
+
+.main {
+  background: transparent;
+}
+
+.topbar {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  backdrop-filter: blur(12px);
+}
+
+.ubid-search,
+.local-search,
+.graph-selector,
+.decision-panel textarea {
+  background: #ffffff;
+  border-color: var(--border2);
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.02);
+}
+
+.ubid-search:focus-within,
+.decision-panel textarea:focus,
+.graph-selector select:focus {
+  border-color: rgba(29, 78, 216, 0.45);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.btn-primary {
+  background: var(--orange);
+  border: 1px solid var(--orange);
+  box-shadow: 0 8px 18px rgba(29, 78, 216, 0.16);
+}
+
+.btn-primary:hover {
+  opacity: 1;
+  background: #1e40af;
+  border-color: #1e40af;
+}
+
+.btn-ghost,
+.icon-button {
+  background: #ffffff;
+  border-color: var(--border2);
+  color: #475569;
+}
+
+.btn-ghost:hover,
+.icon-button:hover {
+  background: #f8fafc;
+  border-color: rgba(29, 78, 216, 0.26);
+  color: var(--orange2);
+}
+
+.content {
+  background: transparent;
+}
+
+.left-panel,
+.right-panel,
+.candidate-panel,
+.review-case-list,
+.review-detail,
+.review-summary-card,
+.comparison-card,
+.evidence-panel,
+.decision-panel,
+.activity-ubid-list,
+.activity-detail,
+.activity-status-card,
+.activity-panel,
+.unmatched-panel,
+.query-results-panel,
+.identity-graph-panel,
+.graph-evidence-panel,
+.map-panel,
+.pin-intel-panel,
+.dashboard-metric,
+.dashboard-panel,
+.demo-flow-panel,
+.judge-card,
+.ubid-card,
+.source-row,
+.explain-box,
+.graph-wrap,
+.metric-card,
+.query-card,
+.info-tile,
+.pin-title,
+.pin-metric,
+.pin-risk-card,
+.pin-coverage-card,
+.empty-state.enhanced {
+  background: #ffffff;
+  border-color: var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.left-panel {
+  background: #ffffff;
+}
+
+.right-panel {
+  background: #f8fafc;
+}
+
+.result-item:hover,
+.query-table-row:hover,
+.review-case-item:hover,
+.activity-ubid-item:hover {
+  background: #f8fafc;
+}
+
+.result-item.selected,
+.review-case-item.selected,
+.activity-ubid-item.selected,
+.query-card.selected {
+  background: var(--orangeA);
+}
+
+.panel-header {
+  background: #fbfdff;
+}
+
+.panel-title,
+.section-title,
+.eyebrow,
+.comparison-field span,
+.evidence-row span,
+.decision-panel label,
+.query-table-head,
+.graph-selector span,
+.pin-metric span,
+.pin-risk-card span {
+  color: #64748b;
+}
+
+.placeholder-hero h1,
+.dashboard-copy h1,
+.review-summary-card h2,
+.activity-status-card h2 {
+  color: var(--text);
+  letter-spacing: 0;
+}
+
+.placeholder-icon {
+  background: var(--blueA);
+  border-color: rgba(37, 99, 235, 0.18);
+  color: var(--orange2);
+}
+
+.status-pill,
+.src-link-badge {
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+.sp-active,
+.slb-linked {
+  background: var(--greenA);
+  color: var(--green2);
+  border-color: rgba(4, 120, 87, 0.16);
+}
+
+.sp-dormant,
+.slb-partial {
+  background: var(--amberA);
+  color: var(--amber2);
+  border-color: rgba(180, 83, 9, 0.16);
+}
+
+.sp-closed {
+  background: var(--redA);
+  color: var(--red2);
+  border-color: rgba(185, 28, 28, 0.16);
+}
+
+.sp-review {
+  background: rgba(234, 88, 12, 0.1);
+  color: #c2410c;
+  border-color: rgba(234, 88, 12, 0.16);
+}
+
+.slb-missing,
+.source-row.missing,
+.dept-chip {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.dept-chip,
+.candidate-records span {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #475569;
+}
+
+.conf-bar-mini,
+.conf-bar-wide,
+.explain-bar,
+.status-track {
+  background: #e2e8f0;
+}
+
+.comparison-card:nth-child(1) .comparison-field:nth-of-type(3),
+.comparison-card:nth-child(2) .comparison-field:nth-of-type(3),
+.comparison-card:nth-child(1) .comparison-field:nth-of-type(5),
+.comparison-card:nth-child(2) .comparison-field:nth-of-type(5) {
+  background: rgba(4, 120, 87, 0.055);
+  margin-inline: -8px;
+  padding-inline: 8px;
+  border-radius: 6px;
+}
+
+.comparison-card .comparison-field:nth-of-type(6),
+.comparison-card .comparison-field:nth-of-type(7) {
+  background: rgba(180, 83, 9, 0.06);
+  margin-inline: -8px;
+  padding-inline: 8px;
+  border-radius: 6px;
+}
+
+.query-table-head {
+  background: #f8fafc;
+}
+
+.query-result.high-risk {
+  box-shadow: inset 4px 0 0 rgba(185, 28, 28, 0.72);
+}
+
+.query-evidence > div,
+.graph-selection-title {
+  background: #f8fafc;
+}
+
+.compliance-badges {
+  background: #ffffff;
+  border-bottom-color: var(--border);
+  padding: 9px 24px;
+}
+
+.compliance-badges span {
+  background: #f8fafc;
+  color: #475569;
+  border-color: var(--border);
+}
+
+.guided-demo-bar {
+  background: linear-gradient(90deg, rgba(29, 78, 216, 0.08), rgba(4, 120, 87, 0.06));
+  border-color: rgba(29, 78, 216, 0.18);
+  box-shadow: var(--shadow-card);
+}
+
+.judge-card {
+  border-top: 3px solid rgba(29, 78, 216, 0.18);
+}
+
+.dashboard-hero {
+  background:
+    linear-gradient(135deg, rgba(29, 78, 216, 0.08), rgba(4, 120, 87, 0.055)),
+    #ffffff;
+  border-color: rgba(29, 78, 216, 0.14);
+  box-shadow: var(--shadow-soft);
+}
+
+.dashboard-metric {
+  border-left-width: 4px;
+}
+
+.priority-case,
+.demo-flow-step,
+.module-shortcuts button,
+.empty-state {
+  background: #ffffff;
+  border-color: var(--border);
+}
+
+.demo-flow-step:hover,
+.module-shortcuts button:hover,
+.query-card:hover {
+  background: #f8fafc;
+  border-color: rgba(29, 78, 216, 0.24);
+  color: var(--text);
+}
+
+.identity-graph-canvas {
+  background:
+    linear-gradient(0deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)),
+    repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.12) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(0deg, rgba(148, 163, 184, 0.12) 0 1px, transparent 1px 28px);
+}
+
+.react-flow__node {
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+.react-flow__edge-text {
+  fill: #475569;
+}
+
+.react-flow__controls,
+.react-flow__controls-button,
+.react-flow__minimap {
+  background: #ffffff;
+  color: var(--text);
+}
+
+.pincode-map-canvas {
+  background: #eef3f8;
+}
+
+.maplibregl-ctrl-group,
+.maplibregl-ctrl button {
+  background: #ffffff;
+}
+
+.maplibregl-ctrl button span {
+  filter: none;
+}
+
+.pincode-marker {
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+}
+
+.marker-active {
+  background: rgba(4, 120, 87, 0.88);
+}
+
+.marker-review {
+  background: rgba(194, 65, 12, 0.86);
+}
+
+.marker-risk {
+  background: rgba(185, 28, 28, 0.88);
+}
+
+.marker-closed {
+  background: rgba(100, 116, 139, 0.88);
+}
+
+.pin-risk-card {
+  background: rgba(185, 28, 28, 0.04);
+}
+
+.empty-state {
+  color: #64748b;
+}
+
+@media (max-width: 780px) {
+  .topbar,
+  .compliance-badges,
+  .judge-card-grid,
+  .guided-demo-bar {
+    margin-inline: 0;
+  }
+
+  .sidebar {
+    box-shadow: none;
+  }
+
+  .nav {
+    padding: 10px;
   }
 }
