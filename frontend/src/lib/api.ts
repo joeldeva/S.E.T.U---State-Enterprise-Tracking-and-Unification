@@ -230,11 +230,41 @@ export interface BusinessSubmissionPayload {
   shop_licence_number?: string;
   kspcb_consent_number?: string;
   bescom_consumer_number?: string;
+  bwssb_consumer_number?: string;
+  labour_registration_number?: string;
+  trade_license_number?: string;
   supporting_document_name?: string;
+}
+
+export interface MockDepartmentRecord {
+  record_id: string;
+  company_group_id: string;
+  department: string;
+  department_record_id: string;
+  business_name: string;
+  pan_masked?: string | null;
+  gstin_masked?: string | null;
+  address: string;
+  pin_code: string;
+  business_sector: string;
+  status_in_department: string;
+  last_updated: string;
+}
+
+export interface MockDatabaseSummary {
+  unique_businesses: number;
+  department_records: number;
+  activity_events: number;
+  departments: string[];
+  ambiguous_or_review_cases: number;
+  last_loaded_status: string;
+  note: string;
+  sample_records: MockDepartmentRecord[];
 }
 
 export interface BusinessSubmission {
   _id: string;
+  submission_id: string;
   ubid: string;
   source_type: "self_submitted";
   business_name: string;
@@ -256,10 +286,17 @@ export interface BusinessSubmission {
     pan_hash?: string | null;
     gstin_hash?: string | null;
   };
-  validation: Record<string, boolean>;
+  validation: Record<string, boolean | string>;
+  validation_results: Record<string, boolean | string>;
   validation_warnings: string[];
+  warnings: string[];
   status: "Provisional";
-  ubid_status: "provisional" | "needs_review" | "verified" | "rejected";
+  ubid_status: "verified_mock_match" | "provisional_needs_review" | "provisional_self_submitted";
+  status_label: "Verified Mock Match" | "Provisional - Needs Review" | "Provisional - Self Submitted" | "Officer Review Required";
+  match_confidence: number;
+  matched_records: MockDepartmentRecord[];
+  matched_activity_events?: unknown[];
+  match_notes?: string[];
   next_step: string;
   verification_note: string;
   created_at: string;
@@ -331,6 +368,14 @@ export function submitBusinessInformation(payload: BusinessSubmissionPayload): P
 
 export function fetchBusinessSubmissions(): Promise<BusinessSubmission[]> {
   return apiFetch<BusinessSubmission[]>("/api/ingestion/business-submissions");
+}
+
+export function fetchMockDatabaseSummary(): Promise<MockDatabaseSummary> {
+  return apiFetch<MockDatabaseSummary>("/api/mock-database/summary");
+}
+
+export function fetchMockDatabaseRecords(): Promise<MockDepartmentRecord[]> {
+  return apiFetch<MockDepartmentRecord[]>("/api/mock-database/records");
 }
 
 export function submitReviewDecision(

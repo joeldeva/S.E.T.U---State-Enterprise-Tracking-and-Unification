@@ -1,9 +1,11 @@
 import { AlertTriangle, CheckCircle2, FileUp, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   BusinessSubmission,
   BusinessSubmissionPayload,
+  MockDatabaseSummary,
+  fetchMockDatabaseSummary,
   submitBusinessInformation,
 } from "../lib/api";
 
@@ -29,6 +31,9 @@ const initialForm: BusinessSubmissionPayload = {
   shop_licence_number: "",
   kspcb_consent_number: "",
   bescom_consumer_number: "",
+  bwssb_consumer_number: "",
+  labour_registration_number: "",
+  trade_license_number: "",
   supporting_document_name: "",
 };
 
@@ -47,9 +52,18 @@ function clientValidate(form: BusinessSubmissionPayload) {
   const warnings: string[] = [];
   const pan = cleanIdentifier(form.pan);
   const gstin = cleanIdentifier(form.gstin);
+  const hasReference = Boolean(
+    form.factory_licence_number?.trim() ||
+      form.shop_licence_number?.trim() ||
+      form.kspcb_consent_number?.trim() ||
+      form.bescom_consumer_number?.trim() ||
+      form.bwssb_consumer_number?.trim() ||
+      form.labour_registration_number?.trim() ||
+      form.trade_license_number?.trim(),
+  );
 
   if (!form.business_name.trim()) errors.push("Business name is required.");
-  if (!pan && !gstin) errors.push("PAN or GSTIN is required.");
+  if (!pan && !gstin && !hasReference) errors.push("PAN, GSTIN, or department reference number is required.");
   if (pan && !panPattern.test(pan)) errors.push("PAN format is invalid.");
   if (gstin && !gstinPattern.test(gstin)) errors.push("GSTIN format must include state code and PAN section.");
   if (!form.address_line.trim()) errors.push("Address line is required.");
@@ -70,8 +84,35 @@ function BusinessRegistrationScreen() {
   const [warnings, setWarnings] = useState<string[]>([]);
   const [statusText, setStatusText] = useState("Ready to validate business information.");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mockSummary, setMockSummary] = useState<MockDatabaseSummary | null>(null);
 
   const validationPreview = useMemo(() => clientValidate(form), [form]);
+  const hasDepartmentReference = Boolean(
+    form.factory_licence_number?.trim() ||
+      form.shop_licence_number?.trim() ||
+      form.kspcb_consent_number?.trim() ||
+      form.bescom_consumer_number?.trim() ||
+      form.bwssb_consumer_number?.trim() ||
+      form.labour_registration_number?.trim() ||
+      form.trade_license_number?.trim(),
+  );
+
+  useEffect(() => {
+    fetchMockDatabaseSummary()
+      .then(setMockSummary)
+      .catch(() => {
+        setMockSummary({
+          unique_businesses: 120,
+          department_records: 456,
+          activity_events: 720,
+          departments: ["Shops and Establishments", "Factories", "Labour", "KSPCB", "BESCOM", "BWSSB"],
+          ambiguous_or_review_cases: 48,
+          last_loaded_status: "fallback_summary",
+          note: "Synthetic CSV-based department database for prototype",
+          sample_records: [],
+        });
+      });
+  }, []);
 
   function updateField<K extends keyof BusinessSubmissionPayload>(field: K, value: BusinessSubmissionPayload[K]) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -90,7 +131,7 @@ function BusinessRegistrationScreen() {
     }
 
     setIsSubmitting(true);
-    setStatusText("Submitting business information for format validation.");
+    setStatusText("Checking synthetic CSV department database and generating UBID.");
     try {
       const result = await submitBusinessInformation({
         ...form,
@@ -101,8 +142,8 @@ function BusinessRegistrationScreen() {
       setWarnings(result.validation_warnings);
       setStatusText(
         result.validation_warnings.length
-          ? "Provisional UBID generated with officer review required."
-          : "Provisional UBID generated successfully.",
+          ? "UBID generated with officer review required."
+          : "UBID generated after mock department lookup.",
       );
       setForm({ ...initialForm, state: form.state });
     } catch (error) {
@@ -121,13 +162,18 @@ function BusinessRegistrationScreen() {
           <p className="eyebrow">Data Ingestion / Business Registration</p>
           <h1>Submit Business Information</h1>
           <p>
-            Generate a provisional UBID using identifier format checks and simulated verification for prototype.
+            Check synthetic department records, validate identifiers, and generate a UBID with evidence.
           </p>
         </div>
         <div className="registration-note">
           <ShieldCheck size={17} aria-hidden="true" />
-          Official registry verification can be integrated in production.
+          Format validation and simulated mock-database verification for prototype.
         </div>
+      </div>
+
+      <div className="mock-db-note">
+        This prototype checks submissions against a synthetic CSV-based department database. Production deployment would
+        connect to authorized department APIs, secure data pipelines, or scheduled department exports.
       </div>
 
       <div className="resolution-status">
@@ -168,7 +214,7 @@ function BusinessRegistrationScreen() {
               <span className="panel-title">Identifiers</span>
             </div>
             <div className="form-grid">
-              <Field label="PAN" required={!form.gstin}>
+              <Field label="PAN" required={!form.gstin && !hasDepartmentReference}>
                 <input
                   value={form.pan}
                   onChange={(event) => updateField("pan", cleanIdentifier(event.target.value))}
@@ -176,7 +222,7 @@ function BusinessRegistrationScreen() {
                   autoComplete="off"
                 />
               </Field>
-              <Field label="GSTIN" required={!form.pan}>
+              <Field label="GSTIN" required={!form.pan && !hasDepartmentReference}>
                 <input
                   value={form.gstin}
                   onChange={(event) => updateField("gstin", cleanIdentifier(event.target.value))}
@@ -233,6 +279,15 @@ function BusinessRegistrationScreen() {
               <Field label="BESCOM consumer number">
                 <input value={form.bescom_consumer_number} onChange={(event) => updateField("bescom_consumer_number", event.target.value)} />
               </Field>
+              <Field label="BWSSB consumer number">
+                <input value={form.bwssb_consumer_number} onChange={(event) => updateField("bwssb_consumer_number", event.target.value)} />
+              </Field>
+              <Field label="Labour registration number">
+                <input value={form.labour_registration_number} onChange={(event) => updateField("labour_registration_number", event.target.value)} />
+              </Field>
+              <Field label="Trade licence number">
+                <input value={form.trade_license_number} onChange={(event) => updateField("trade_license_number", event.target.value)} />
+              </Field>
               <Field label="Supporting document" wide>
                 <label className="upload-placeholder">
                   <FileUp size={16} aria-hidden="true" />
@@ -252,12 +307,14 @@ function BusinessRegistrationScreen() {
               Clear
             </button>
             <button className="btn-primary" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Generating..." : "Generate Provisional UBID"}
+              {isSubmitting ? "Checking..." : "Check Mock Department Database & Generate UBID"}
             </button>
           </div>
         </form>
 
         <aside className="registration-side">
+          <MockDatabasePanel summary={mockSummary} />
+
           <section className="form-panel">
             <div className="panel-header compact">
               <span className="panel-title">Validation Preview</span>
@@ -270,9 +327,9 @@ function BusinessRegistrationScreen() {
           {submission ? (
             <section className="form-panel success-panel">
               <div className="panel-header compact">
-                <span className="panel-title">Provisional UBID</span>
-                <span className={`status-pill ${submission.ubid_status === "needs_review" ? "sp-review" : "sp-active"}`}>
-                  {submission.ubid_status === "needs_review" ? "Requires Officer Review" : "Provisional"}
+                <span className="panel-title">UBID Result</span>
+                <span className={`status-pill ${statusClass(submission.ubid_status)}`}>
+                  {submission.status_label}
                 </span>
               </div>
               <div className="generated-ubid">{submission.ubid}</div>
@@ -280,9 +337,12 @@ function BusinessRegistrationScreen() {
                 <span>{submission.business_name}</span>
                 <span>PAN: {submission.identifiers.pan_masked ?? "Not provided"}</span>
                 <span>GSTIN: {submission.identifiers.gstin_masked ?? "Not provided"}</span>
+                <span>Match confidence: {submission.match_confidence}%</span>
                 <span>{submission.next_step}</span>
               </div>
-              <ValidationResult validation={submission.validation} warnings={submission.validation_warnings} />
+              <ValidationResult validation={submission.validation_results} warnings={submission.warnings} />
+              {submission.matched_records.length ? <MatchedRecordsTable records={submission.matched_records} /> : null}
+              {submission.match_notes?.length ? <MessageList tone="info" items={submission.match_notes} /> : null}
             </section>
           ) : null}
 
@@ -339,12 +399,13 @@ function ValidationRows({ form, warnings }: { form: BusinessSubmissionPayload; w
   );
 }
 
-function ValidationResult({ validation, warnings }: { validation: Record<string, boolean>; warnings: string[] }) {
+function ValidationResult({ validation, warnings }: { validation: Record<string, boolean | string>; warnings: string[] }) {
   const labels: Array<[string, string]> = [
     ["pan_format_valid", "PAN format valid"],
     ["gstin_format_valid", "GSTIN format valid"],
     ["pin_valid", "PIN valid"],
-    ["official_verification_simulated", "Official verification simulated"],
+    ["mock_database_match", "Mock database match"],
+    ["official_verification", "Official verification simulated for prototype"],
   ];
 
   return (
@@ -365,7 +426,79 @@ function ValidationResult({ validation, warnings }: { validation: Record<string,
   );
 }
 
-function MessageList({ tone, items }: { tone: "error" | "warning"; items: string[] }) {
+function statusClass(status: BusinessSubmission["ubid_status"]) {
+  if (status === "verified_mock_match") return "sp-active";
+  if (status === "provisional_needs_review") return "sp-review";
+  return "sp-dormant";
+}
+
+function MockDatabasePanel({ summary }: { summary: MockDatabaseSummary | null }) {
+  return (
+    <section className="form-panel mock-db-panel">
+      <div className="panel-header compact">
+        <span className="panel-title">Mock Database</span>
+        <span className="status-pill sp-review">{summary?.last_loaded_status ?? "loading"}</span>
+      </div>
+      <div className="mock-db-stats">
+        <Stat label="Unique businesses" value={summary?.unique_businesses ?? 120} />
+        <Stat label="Department records" value={summary?.department_records ?? 456} />
+        <Stat label="Activity events" value={summary?.activity_events ?? 720} />
+        <Stat label="Review cases" value={summary?.ambiguous_or_review_cases ?? 48} />
+      </div>
+      <div className="dept-chips">
+        {(summary?.departments ?? []).slice(0, 7).map((department) => (
+          <span className="dept-chip" key={department}>
+            {department}
+          </span>
+        ))}
+      </div>
+      {summary?.sample_records?.length ? (
+        <div className="sample-records">
+          {summary.sample_records.slice(0, 3).map((record) => (
+            <div key={record.record_id}>
+              <strong>{record.business_name}</strong>
+              <span>{record.department} - {record.pan_masked ?? record.gstin_masked ?? "identifier masked"}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <p>{summary?.note ?? "Synthetic CSV-based department database for prototype"}</p>
+    </section>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function MatchedRecordsTable({ records }: { records: BusinessSubmission["matched_records"] }) {
+  return (
+    <div className="matched-records">
+      <div className="section-title">Matched department records</div>
+      <div className="matched-table">
+        <span>Department</span>
+        <span>Record</span>
+        <span>Business</span>
+        <span>Status</span>
+        {records.slice(0, 6).map((record) => (
+          <div className="matched-row" key={record.record_id}>
+            <span>{record.department}</span>
+            <span>{record.department_record_id}</span>
+            <span>{record.business_name}</span>
+            <span>{record.status_in_department}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MessageList({ tone, items }: { tone: "error" | "warning" | "info"; items: string[] }) {
   return (
     <div className={`message-list ${tone}`}>
       {items.map((item) => (

@@ -19,6 +19,15 @@ from ..services.identifier_validation import (
   validate_phone_format,
   validate_pin_code,
 )
+from ..services.mock_database import (
+  find_by_gstin,
+  find_by_license_or_consumer_number,
+  find_by_pan,
+  find_fuzzy_business_match,
+  get_activity_events_for_identifier,
+  mask_activity_event,
+  mask_department_record,
+)
 from ..services.serialization import serialize_document
 from ..services.ubid_generator import generate_ubid
 
@@ -45,6 +54,9 @@ class BusinessSubmissionRequest(BaseModel):
   shop_licence_number: str | None = None
   kspcb_consent_number: str | None = None
   bescom_consumer_number: str | None = None
+  bwssb_consumer_number: str | None = None
+  labour_registration_number: str | None = None
+  trade_license_number: str | None = None
   supporting_document_name: str | None = None
 
 
@@ -59,7 +71,22 @@ def _now_iso() -> str:
   return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def _validate_payload(payload: BusinessSubmissionRequest) -> tuple[list[str], list[str], dict[str, bool]]:
+def _has_department_reference(payload: BusinessSubmissionRequest) -> bool:
+  return any(
+    _clean(value)
+    for value in [
+      payload.factory_licence_number,
+      payload.shop_licence_number,
+      payload.kspcb_consent_number,
+      payload.bescom_consumer_number,
+      payload.bwssb_consumer_number,
+      payload.labour_registration_number,
+      payload.trade_license_number,
+    ]
+  )
+
+
+def _validate_payload(payload: BusinessSubmissionRequest) -> tuple[list[str], list[str], dict[str, object]]:
   errors: list[str] = []
   warnings: list[str] = []
 
@@ -74,8 +101,8 @@ def _validate_payload(payload: BusinessSubmissionRequest) -> tuple[list[str], li
 
   if not _clean(payload.business_name):
     errors.append("Business name is required.")
-  if not has_pan and not has_gstin:
-    errors.append("PAN or GSTIN is required.")
+  if not has_pan and not has_gstin and not _has_department_reference(payload):
+    errors.append("PAN, GSTIN, or department reference number is required.")
   if has_pan and not pan_valid:
     errors.append("PAN format is invalid.")
   if has_gstin and not gstin_valid:
@@ -98,8 +125,92 @@ def _validate_payload(payload: BusinessSubmissionRequest) -> tuple[list[str], li
     "email_format_valid": email_valid,
     "phone_format_valid": phone_valid,
     "gstin_pan_consistent": identifiers_consistent,
-    "official_verification_simulated": True,
+    "official_verification": "simulated_for_prototype",
   }
+
+
+def _dedupe_records(records: list[dict]) -> list[dict]:
+  seen: set[str] = set()
+  deduped: list[dict] = []
+  for record in records:
+    record_id = record.get("record_id", "")
+    if record_id and record_id not in seen:
+      seen.add(record_id)
+      deduped.append(record)
+  return deduped
+
+
+def _build_mock_match(payload: BusinessSubmissionRequest, warnings: list[str]) -> tuple[list[dict], int, str, list[str]]:
+  match_notes: list[str] = []
+  strong_matches: list[dict] = []
+  pan_matches = find_by_pan(payload.pan)
+  gstin_matches = find_by_gstin(payload.gstin)
+
+  if gstin_matches:
+    match_notes.append("GSTIN matched synthetic department records.")
+    strong_matches.extend(gstin_matches)
+  if pan_matches:
+    match_notes.append("PAN matched synthetic department records.")
+    strong_matches.extend(pan_matches)
+
+  license_matches = find_by_license_or_consumer_number(
+    {
+      "factory_license_no": payload.factory_licence_number,
+      "shop_license_no": payload.shop_licence_number,
+      "labour_registration_no": payload.labour_registration_number,
+      "kspcb_consent_no": payload.kspcb_consent_number,
+      "bescom_consumer_no": payload.bescom_consumer_number,
+      "bwssb_consumer_no": payload.bwssb_consumer_number,
+      "trade_license_no": payload.trade_license_number,
+    }
+  )
+  if license_matches:
+    match_notes.append("Department licence or consumer number matched synthetic records.")
+    strong_matches.extend(license_matches)
+
+  strong_matches = _dedupe_records(strong_matches)
+  if strong_matches:
+    return strong_matches, 95 if not warnings else 72, "strong_identifier_or_reference", match_notes
+
+  fuzzy_matches = find_fuzzy_business_match(
+    business_name=payload.business_name,
+    address=payload.address_line,
+    pin_code=payload.pin_code,
+    sector=payload.business_sector,
+  )
+  if fuzzy_matches:
+    best = fuzzy_matches[0]["confidence"]
+    matched_records = [item["record"] for item in fuzzy_matches if item["confidence"] >= max(65, best - 8)]
+    match_notes.append(f"Fuzzy business match found at {best}% confidence.")
+    return _dedupe_records(matched_records), best, "fuzzy_business", match_notes
+
+  return [], 0, "self_submitted_only", ["No matching record found in synthetic CSV department database."]
+
+
+def _status_for_match(confidence: int, warnings: list[str]) -> tuple[str, str, str]:
+  if warnings:
+    return (
+      "provisional_needs_review",
+      "Officer Review Required",
+      "Identifier warning requires officer review before verification.",
+    )
+  if confidence >= 90:
+    return (
+      "verified_mock_match",
+      "Verified Mock Match",
+      "Matched synthetic department evidence. Pending final production registry verification.",
+    )
+  if confidence >= 65:
+    return (
+      "provisional_needs_review",
+      "Provisional - Needs Review",
+      "Ambiguous synthetic database match requires officer review.",
+    )
+  return (
+    "provisional_self_submitted",
+    "Provisional - Self Submitted",
+    "No confident synthetic department match found. Pending government verification / reviewer approval.",
+  )
 
 
 @router.post("/business-submission")
@@ -120,14 +231,24 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
   timestamp = _now_iso()
   pan_hash = hash_identifier(payload.pan, "hash_self_pan")
   gstin_hash = hash_identifier(payload.gstin, "hash_self_gstin")
+  matched_records, match_confidence, match_type, match_notes = _build_mock_match(payload, warnings)
+  matched_group = matched_records[0].get("company_group_id") if matched_records else None
+  activity_events = get_activity_events_for_identifier(
+    pan=payload.pan,
+    gstin=payload.gstin,
+    company_group_id=matched_group,
+  )[:10]
   anchor_hash = gstin_hash or pan_hash
   submission_id = f"submission_{uuid4().hex[:10]}"
-  ubid = generate_ubid(anchor_hash, [submission_id])
-  ubid_status = "needs_review" if warnings else "provisional"
-  review_status = "pending_verification" if warnings else "provisional"
+  ubid = generate_ubid(anchor_hash or matched_group, [submission_id, *(record.get("record_id", "") for record in matched_records)])
+  ubid_status, status_label, next_step = _status_for_match(match_confidence, warnings)
+  review_status = "pending_review" if ubid_status == "provisional_needs_review" else ubid_status
+  masked_records = [mask_department_record(record, include_match_detail=True) for record in matched_records[:12]]
+  masked_events = [mask_activity_event(event) for event in activity_events]
 
   submission = {
     "_id": submission_id,
+    "submission_id": submission_id,
     "ubid": ubid,
     "source_type": "self_submitted",
     "business_name": payload.business_name.strip(),
@@ -154,18 +275,35 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
       "shop_licence_number": _clean(payload.shop_licence_number),
       "kspcb_consent_number": _clean(payload.kspcb_consent_number),
       "bescom_consumer_number": _clean(payload.bescom_consumer_number),
+      "bwssb_consumer_number": _clean(payload.bwssb_consumer_number),
+      "labour_registration_number": _clean(payload.labour_registration_number),
+      "trade_license_number": _clean(payload.trade_license_number),
     },
     "supporting_document": {
       "name": _clean(payload.supporting_document_name),
       "stored": False,
       "note": "Upload placeholder only; document storage can be integrated in production.",
     },
-    "validation": validation,
+    "validation": {
+      **validation,
+      "mock_database_match": bool(matched_records),
+    },
+    "validation_results": {
+      **validation,
+      "mock_database_match": bool(matched_records),
+    },
     "validation_warnings": warnings,
+    "warnings": warnings,
     "status": "Provisional",
     "ubid_status": ubid_status,
-    "next_step": "Pending government verification / reviewer approval",
-    "verification_note": "Format validation and simulated verification for prototype. Official registry verification can be integrated in production.",
+    "status_label": status_label,
+    "match_type": match_type,
+    "match_confidence": match_confidence,
+    "matched_records": masked_records,
+    "matched_activity_events": masked_events,
+    "match_notes": match_notes,
+    "next_step": next_step,
+    "verification_note": "Format validation and simulated mock-database verification for prototype. Production deployment would connect to authorized department APIs, secure data pipelines, or scheduled department exports.",
     "created_at": timestamp,
   }
 
@@ -180,13 +318,14 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
         "anchor_type": "GSTIN_HASH" if gstin_hash else "PAN_HASH",
         "anchor_hash": anchor_hash,
         "linked_records": [],
-        "candidate_records": [submission_id],
-        "current_status": "Provisional",
+        "candidate_records": [submission_id, *(record.get("record_id", "") for record in matched_records[:12])],
+        "current_status": status_label,
         "ubid_status": ubid_status,
         "source_type": "self_submitted",
         "review_status": review_status,
-        "status_confidence": 55 if warnings else 70,
-        "match_confidence": 0,
+        "status_confidence": match_confidence if match_confidence else 50,
+        "match_confidence": match_confidence,
+        "mock_department_evidence": masked_records,
         "created_by": "business_submission",
         "reversible": True,
         "updated_at": timestamp,
@@ -195,7 +334,7 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
     upsert=True,
   )
 
-  if warnings:
+  if warnings or ubid_status == "provisional_needs_review":
     review_id = f"review_{submission_id}"
     await database.review_queue.update_one(
       {"_id": review_id},
@@ -206,8 +345,9 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
           "submission_id": submission_id,
           "ubid": ubid,
           "confidence": 55,
+          "match_confidence": match_confidence,
           "priority": "High",
-          "reason": "Identifier validation warning",
+          "reason": "Identifier validation warning" if warnings else "Ambiguous mock database match",
           "review_status": "pending",
           "assigned_to": "Reviewer Demo",
           "created_at": timestamp,
@@ -228,10 +368,12 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
       "after": {
         "ubid": ubid,
         "ubid_status": ubid_status,
+        "match_confidence": match_confidence,
+        "matched_records": len(masked_records),
         "source_type": "self_submitted",
         "validation_warnings": warnings,
       },
-      "reason": "Business information submitted for provisional UBID generation.",
+      "reason": "Business information submitted for CSV mock department lookup and UBID generation.",
       "timestamp": timestamp,
     }
   )
