@@ -162,7 +162,7 @@ function BusinessRegistrationScreen() {
           <p className="eyebrow">Data Ingestion / Business Registration</p>
           <h1>Submit Business Information</h1>
           <p>
-            Check synthetic department records, validate identifiers, and generate a UBID with evidence.
+            Check synthetic department records, licence references, names, and addresses to generate a UBID with evidence.
           </p>
         </div>
         <div className="registration-note">
@@ -174,6 +174,8 @@ function BusinessRegistrationScreen() {
       <div className="mock-db-note">
         This prototype checks submissions against a synthetic CSV-based department database. Production deployment would
         connect to authorized department APIs, secure data pipelines, or scheduled department exports.
+        Karnataka department forms may omit PAN/GSTIN, so SETU can also use licence numbers, local identifiers, names,
+        addresses, PIN code, district, owner details, and contact references for matching.
       </div>
 
       <div className="resolution-status">
@@ -211,7 +213,7 @@ function BusinessRegistrationScreen() {
 
           <section className="form-panel">
             <div className="panel-header compact">
-              <span className="panel-title">Identifiers</span>
+              <span className="panel-title">Optional Tax Identifiers</span>
             </div>
             <div className="form-grid">
               <Field label="PAN" required={!form.gstin && !hasDepartmentReference}>
@@ -264,7 +266,7 @@ function BusinessRegistrationScreen() {
 
           <section className="form-panel">
             <div className="panel-header compact">
-              <span className="panel-title">Department References</span>
+              <span className="panel-title">Department References / Local Identifiers</span>
             </div>
             <div className="form-grid">
               <Field label="Factory licence number">

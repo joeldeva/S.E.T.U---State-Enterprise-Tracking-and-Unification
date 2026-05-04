@@ -54,6 +54,18 @@ def score_pair(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
   gstin_right = right_norm.get("gstin_hash")
   pan_left = left_norm.get("pan_hash")
   pan_right = right_norm.get("pan_hash")
+  left_license_hashes = set((left_norm.get("license_hashes") or {}).values())
+  right_license_hashes = set((right_norm.get("license_hashes") or {}).values())
+  shared_license_hashes = left_license_hashes & right_license_hashes
+
+  if shared_license_hashes:
+    score += 55
+    evidence["licence_or_local_identifier_match"] = _evidence_item(
+      55,
+      True,
+      "Department licence, consent, registration, or utility consumer reference matches.",
+      len(shared_license_hashes),
+    )
 
   identifier_conflict = False
   if gstin_left and gstin_right:
@@ -86,6 +98,12 @@ def score_pair(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
       score -= 20
       evidence["different_pin"] = _evidence_item(-20, False, "PIN codes differ.", f"{pin_left} vs {pin_right}")
 
+  district_left = left_norm.get("district")
+  district_right = right_norm.get("district")
+  if district_left and district_right and district_left == district_right:
+    score += 8
+    evidence["same_district"] = _evidence_item(8, True, "Districts match.", district_left)
+
   name_similarity = _similarity(left_norm.get("business_name"), right_norm.get("business_name"))
   if name_similarity > 85:
     score += 20
@@ -105,6 +123,16 @@ def score_pair(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
   if phone_match or email_match:
     score += 20
     evidence["contact_hash_match"] = _evidence_item(20, True, "Phone or email hashes match.")
+
+  owner_similarity = _similarity(left_norm.get("owner_name"), right_norm.get("owner_name"))
+  if owner_similarity > 85:
+    score += 10
+    evidence["owner_or_promoter_similarity"] = _evidence_item(
+      10,
+      True,
+      "Owner, employer, promoter, or authorised signatory names are strongly similar.",
+      owner_similarity,
+    )
 
   category_left = left_norm.get("sector")
   category_right = right_norm.get("sector")

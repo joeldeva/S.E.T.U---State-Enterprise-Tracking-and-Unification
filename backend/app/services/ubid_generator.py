@@ -18,6 +18,10 @@ def _title_case(value: str) -> str:
 
 def anchor_for_record(normalized_record: dict[str, Any]) -> tuple[str, str] | None:
   normalized = normalized_record.get("normalized", {})
+  license_hashes = normalized.get("license_hashes") or {}
+  if license_hashes:
+    first_key = sorted(license_hashes)[0]
+    return ("LOCAL_IDENTIFIER_HASH", license_hashes[first_key])
   if normalized.get("gstin_hash"):
     return ("GSTIN_HASH", normalized["gstin_hash"])
   if normalized.get("pan_hash"):

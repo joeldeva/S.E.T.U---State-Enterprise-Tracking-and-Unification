@@ -15,6 +15,13 @@ ABBREVIATIONS = {
   "ltd": "limited",
   "limited": "limited",
   "engg": "engineering",
+  "estb": "establishment",
+  "estd": "established",
+  "mfg": "manufacturing",
+  "comp": "components",
+  "rd": "road",
+  "st": "street",
+  "no": "number",
   "indl": "industrial",
   "blr": "bengaluru",
   "bangalore": "bengaluru",
@@ -36,6 +43,8 @@ ADDRESS_FIELDS = (
   "service_address",
   "registered_address",
   "factory_address",
+  "postal_address",
+  "establishment_address",
 )
 
 CATEGORY_FIELDS = (
@@ -44,6 +53,41 @@ CATEGORY_FIELDS = (
   "industry_type",
   "category",
   "meter_category",
+  "business_sector",
+  "nature_of_business",
+)
+
+OWNER_FIELDS = (
+  "owner_name",
+  "employer_name",
+  "promoter_name",
+  "promoter_names",
+  "partner_name",
+  "director_name",
+  "authorized_signatory",
+  "authorised_signatory",
+)
+
+DISTRICT_FIELDS = ("district", "district_name")
+
+LICENSE_FIELDS = (
+  "license_no",
+  "licence_no",
+  "factory_license_no",
+  "factory_licence_number",
+  "shop_license_no",
+  "shop_licence_number",
+  "labour_registration_no",
+  "labour_registration_number",
+  "kspcb_consent_no",
+  "kspcb_consent_number",
+  "bescom_consumer_no",
+  "bescom_consumer_number",
+  "bwssb_consumer_no",
+  "bwssb_consumer_number",
+  "trade_license_no",
+  "trade_license_number",
+  "department_record_id",
 )
 
 
@@ -63,7 +107,7 @@ def extract_pin(value: Any) -> str | None:
 
 
 def normalize_address(value: Any) -> dict[str, Any]:
-  raw = str(value or "")
+  raw = re.sub(r"[\r\n]+", " ", str(value or ""))
   normalized = normalize_text(raw)
   pin_code = extract_pin(raw)
   tokens = [token for token in normalized.split() if token != pin_code]
@@ -112,6 +156,20 @@ def _first_value(raw: dict[str, Any], fields: tuple[str, ...]) -> Any:
   return None
 
 
+def normalize_license(value: Any) -> str | None:
+  compact = re.sub(r"[^A-Za-z0-9]", "", str(value or "")).upper()
+  return compact or None
+
+
+def license_hashes(raw: dict[str, Any]) -> dict[str, str]:
+  hashes: dict[str, str] = {}
+  for field in LICENSE_FIELDS:
+    normalized = normalize_license(raw.get(field))
+    if normalized:
+      hashes[field] = hash_identifier(normalized, "license")
+  return hashes
+
+
 def _identifier_hash(raw: dict[str, Any], plain_key: str, hash_key: str, kind: str) -> str | None:
   if raw.get(hash_key):
     return hash_identifier(raw[hash_key], kind)
@@ -134,6 +192,9 @@ def normalize_source_record(source_record: dict[str, Any]) -> dict[str, Any]:
   address_value = _first_value(raw, ADDRESS_FIELDS)
   normalized_address = normalize_address(address_value)
   category = normalize_text(_first_value(raw, CATEGORY_FIELDS))
+  owner_name = normalize_text(_first_value(raw, OWNER_FIELDS))
+  district = normalize_text(_first_value(raw, DISTRICT_FIELDS))
+  licence_hashes = license_hashes({**raw, "department_record_id": source_record.get("source_record_id")})
 
   gstin_hash = _identifier_hash(raw, "gstin", "gstin_hash", "gstin")
   pan_hash = _identifier_hash(raw, "pan", "pan_hash", "pan")
@@ -147,6 +208,10 @@ def normalize_source_record(source_record: dict[str, Any]) -> dict[str, Any]:
     quality_flags.append("pan_missing")
   if not normalized_address["pin_code"]:
     quality_flags.append("pin_missing")
+  if not normalized_address["address"] or len(normalized_address["address_tokens"]) < 4:
+    quality_flags.append("incomplete_address")
+  if not licence_hashes:
+    quality_flags.append("licence_or_local_identifier_missing")
   if source_record.get("department") in {"BESCOM", "BWSSB"}:
     quality_flags.append("activity_or_utility_source")
 
@@ -166,6 +231,9 @@ def normalize_source_record(source_record: dict[str, Any]) -> dict[str, Any]:
       "pan_hash": pan_hash,
       "phone_hash": phone_hash,
       "email_hash": email_hash,
+      "owner_name": owner_name,
+      "district": district,
+      "license_hashes": licence_hashes,
       "sector": category,
     },
     "quality_flags": quality_flags,
