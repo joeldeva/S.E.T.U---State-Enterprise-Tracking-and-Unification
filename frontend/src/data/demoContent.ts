@@ -21,9 +21,7 @@ export const complianceBadges = [
 ];
 
 export const guidedDemoSteps: DemoStep[] = [
-  { id: "ingestion", label: "Department data ingestion" },
-  { id: "normalization", label: "Normalization" },
-  { id: "resolution", label: "Entity resolution" },
+  { id: "ingestion", label: "Business data ingestion" },
   { id: "review", label: "Reviewer queue" },
   { id: "ubid", label: "UBID registry" },
   { id: "activity", label: "Activity intelligence" },
@@ -40,9 +38,9 @@ export const moduleNarratives: Record<ScreenId, ModuleNarrative> = {
     satisfies: "The dashboard makes synthetic data, read-only integration, human review, and reversibility visible from the first screen.",
   },
   ingestion: {
-    proves: "Department systems remain untouched while K-BIG reads synthetic source extracts beside them.",
-    matters: "Karnataka can connect Shops, Factories, Labour, KSPCB, BESCOM, and BWSSB without re-platforming.",
-    satisfies: "Raw records are preserved, schema mapping is explicit, and source-system change is marked as not required.",
+    proves: "Business users can submit details, pass format validation, and receive a provisional UBID.",
+    matters: "Karnataka can start intake from business-facing submissions while still preserving officer review.",
+    satisfies: "PAN/GSTIN are masked after submission, identifier hashes support matching, and warnings route to review.",
   },
   normalization: {
     proves: "Messy business names, addresses, PIN codes, and identifiers become comparable without exposing raw PAN or GSTIN.",

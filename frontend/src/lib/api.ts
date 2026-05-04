@@ -36,7 +36,14 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed with ${response.status}`);
+    let detail = `API request failed with ${response.status}`;
+    try {
+      const body = await response.json();
+      detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail ?? body);
+    } catch {
+      // Keep the status-only message if the response is not JSON.
+    }
+    throw new Error(detail);
   }
 
   return response.json() as Promise<T>;
@@ -205,6 +212,59 @@ export interface AuditLog {
   timestamp: string;
 }
 
+export interface BusinessSubmissionPayload {
+  business_name: string;
+  business_type: "Proprietorship" | "Partnership" | "LLP" | "Pvt Ltd" | "Public Ltd" | "Other";
+  pan?: string;
+  gstin?: string;
+  owner_name?: string;
+  email?: string;
+  phone?: string;
+  address_line: string;
+  city?: string;
+  district?: string;
+  state: string;
+  pin_code: string;
+  business_sector?: string;
+  factory_licence_number?: string;
+  shop_licence_number?: string;
+  kspcb_consent_number?: string;
+  bescom_consumer_number?: string;
+  supporting_document_name?: string;
+}
+
+export interface BusinessSubmission {
+  _id: string;
+  ubid: string;
+  source_type: "self_submitted";
+  business_name: string;
+  business_type: string;
+  owner_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address: {
+    address_line: string;
+    city?: string | null;
+    district?: string | null;
+    state: string;
+    pin_code: string;
+  };
+  business_sector?: string | null;
+  identifiers: {
+    pan_masked?: string | null;
+    gstin_masked?: string | null;
+    pan_hash?: string | null;
+    gstin_hash?: string | null;
+  };
+  validation: Record<string, boolean>;
+  validation_warnings: string[];
+  status: "Provisional";
+  ubid_status: "provisional" | "needs_review" | "verified" | "rejected";
+  next_step: string;
+  verification_note: string;
+  created_at: string;
+}
+
 export type ReviewDecision =
   | "approve_merge"
   | "reject_match"
@@ -260,6 +320,17 @@ export function runActiveFactoriesNoInspectionQuery(): Promise<ActiveFactoriesQu
 
 export function fetchPinCodeSummary(): Promise<PinCodeSummary[]> {
   return apiFetch<PinCodeSummary[]>("/api/map/pincode-summary");
+}
+
+export function submitBusinessInformation(payload: BusinessSubmissionPayload): Promise<BusinessSubmission> {
+  return apiFetch<BusinessSubmission>("/api/ingestion/business-submission", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function fetchBusinessSubmissions(): Promise<BusinessSubmission[]> {
+  return apiFetch<BusinessSubmission[]>("/api/ingestion/business-submissions");
 }
 
 export function submitReviewDecision(

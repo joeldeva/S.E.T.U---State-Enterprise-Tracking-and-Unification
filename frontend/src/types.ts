@@ -59,4 +59,5 @@ export interface ScreenDefinition {
   icon: LucideIcon;
   section: "Core" | "Intelligence" | "Governance";
   badge?: string;
+  hidden?: boolean;
 }

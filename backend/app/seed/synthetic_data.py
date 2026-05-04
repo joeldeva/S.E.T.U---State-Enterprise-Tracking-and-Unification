@@ -579,6 +579,7 @@ AUDIT_LOGS: list[dict[str, Any]] = [
 ]
 
 SEED_COLLECTIONS: dict[str, list[dict[str, Any]]] = {
+  "business_submissions": [],
   "source_records": SOURCE_RECORDS,
   "normalized_records": NORMALIZED_RECORDS,
   "match_candidates": MATCH_CANDIDATES,
@@ -590,6 +591,8 @@ SEED_COLLECTIONS: dict[str, list[dict[str, Any]]] = {
 
 
 async def _ensure_indexes(database: AsyncIOMotorDatabase) -> None:
+  await database.business_submissions.create_index("ubid")
+  await database.business_submissions.create_index("status")
   await database.source_records.create_index([("department", 1), ("source_record_id", 1)], unique=True)
   await database.normalized_records.create_index("normalized.pin_code")
   await database.match_candidates.create_index("decision_zone")
@@ -606,6 +609,10 @@ async def seed_database(database: AsyncIOMotorDatabase) -> dict[str, int]:
     collection = database[collection_name]
     existing_count = await collection.count_documents({})
     if existing_count:
+      inserted[collection_name] = 0
+      continue
+
+    if not documents:
       inserted[collection_name] = 0
       continue
 

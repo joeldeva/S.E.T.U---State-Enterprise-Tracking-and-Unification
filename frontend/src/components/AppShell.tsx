@@ -91,9 +91,9 @@ function AppShell({
             <button
               className="btn-primary"
               type="button"
-              onClick={() => window.alert("New UBID creation starts in a later phase.")}
+              onClick={() => onNavigate("ingestion")}
             >
-              New UBID
+              Submit Business
             </button>
           </div>
         </header>

@@ -2,11 +2,10 @@ import {
   Activity,
   ArrowRight,
   ClipboardCheck,
-  Database,
   FileSearch,
   Fingerprint,
-  GitCompareArrows,
   MapPinned,
+  Send,
   ShieldCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -19,14 +18,13 @@ interface ExecutiveDashboardScreenProps {
 }
 
 const metrics = [
-  { label: "Total source records", value: "186", tone: "blue" },
-  { label: "Departments connected", value: "5", tone: "purple" },
+  { label: "Total business submissions", value: "24", tone: "blue" },
   { label: "UBIDs generated", value: "92", tone: "green" },
-  { label: "Pending human reviews", value: "18", tone: "amber" },
+  { label: "Pending verification", value: "18", tone: "amber" },
+  { label: "Verified UBIDs", value: "74", tone: "purple" },
   { label: "Active businesses", value: "61", tone: "green" },
   { label: "Dormant businesses", value: "22", tone: "amber" },
   { label: "Closed businesses", value: "9", tone: "red" },
-  { label: "Unmatched activity events", value: "11", tone: "orange" },
 ];
 
 const impactItems = [
@@ -58,9 +56,7 @@ const statusDistribution = [
 ];
 
 const moduleShortcuts = [
-  { id: "ingestion", label: "Ingest", icon: Database },
-  { id: "normalization", label: "Normalize", icon: ShieldCheck },
-  { id: "resolution", label: "Resolve", icon: GitCompareArrows },
+  { id: "ingestion", label: "Submit Business", icon: Send },
   { id: "review", label: "Review", icon: ClipboardCheck },
   { id: "ubid", label: "Registry", icon: Fingerprint },
   { id: "activity", label: "Activity", icon: Activity },

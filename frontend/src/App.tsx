@@ -2,15 +2,13 @@ import {
   Activity,
   BarChart3,
   ClipboardCheck,
-  Database,
   FileSearch,
   Fingerprint,
-  GitCompareArrows,
   GitFork,
   LayoutDashboard,
   MapPinned,
   ScrollText,
-  SlidersHorizontal,
+  Send,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
@@ -18,6 +16,7 @@ import { guidedDemoSteps } from "./data/demoContent";
 import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
 import AuditLogsScreen from "./screens/AuditLogsScreen";
 import BiQueryEngineScreen from "./screens/BiQueryEngineScreen";
+import BusinessRegistrationScreen from "./screens/BusinessRegistrationScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import ExecutiveDashboardScreen from "./screens/ExecutiveDashboardScreen";
 import IdentityGraphScreen from "./screens/IdentityGraphScreen";
@@ -29,10 +28,8 @@ import type { ScreenDefinition, ScreenId } from "./types";
 
 const screens: ScreenDefinition[] = [
   { id: "dashboard", label: "Executive Dashboard", icon: LayoutDashboard, section: "Core" },
+  { id: "ingestion", label: "Data Ingestion / Business Registration", icon: Send, section: "Core" },
   { id: "ubid", label: "UBID Registry", icon: Fingerprint, section: "Core" },
-  { id: "ingestion", label: "Department Ingestion", icon: Database, section: "Core" },
-  { id: "normalization", label: "Normalization Engine", icon: SlidersHorizontal, section: "Core" },
-  { id: "resolution", label: "Entity Resolution", icon: GitCompareArrows, section: "Core" },
   { id: "review", label: "Review Queue", icon: ClipboardCheck, section: "Governance", badge: "12" },
   { id: "activity", label: "Activity Intelligence", icon: Activity, section: "Intelligence" },
   { id: "queries", label: "BI Query Engine", icon: FileSearch, section: "Intelligence" },
@@ -43,7 +40,7 @@ const screens: ScreenDefinition[] = [
 
 const placeholderCopy: Record<Exclude<ScreenId, "ubid">, string> = {
   dashboard: "State-wide business intelligence summary with source counts, status mix, confidence distribution, and review pressure.",
-  ingestion: "Read-only department feeds, raw previews, schema mapping status, and quality warnings.",
+  ingestion: "Business-facing data submission, identifier format validation, and provisional UBID generation.",
   normalization: "Before-and-after cleaning for names, addresses, PIN codes, phone/email fields, and hashed identifiers.",
   resolution: "Explainable match candidates using deterministic anchors, fuzzy scores, conflict checks, and decision zones.",
   review: "Officer workflow for ambiguous cases with approve, reject, attach, create UBID, and audit actions.",
@@ -116,6 +113,8 @@ function App() {
         <ExecutiveDashboardScreen onNavigate={navigate} onStartDemo={startGuidedDemo} />
       ) : activeScreen === "ubid" ? (
         <UbidRegistry onNavigate={navigate} />
+      ) : activeScreen === "ingestion" ? (
+        <BusinessRegistrationScreen />
       ) : activeScreen === "resolution" ? (
         <EntityResolutionScreen />
       ) : activeScreen === "review" ? (

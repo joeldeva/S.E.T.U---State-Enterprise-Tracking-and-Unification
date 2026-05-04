@@ -19,6 +19,10 @@ async def build_dashboard_summary(database: AsyncIOMotorDatabase) -> dict:
   auto_linked = await database.match_candidates.count_documents({"decision_zone": "auto_link"})
   pending_reviews = await database.review_queue.count_documents({"review_status": "pending"})
   unmatched_events = await database.activity_events.count_documents({"ubid": None})
+  business_submissions = await database.business_submissions.count_documents({})
+  verified_ubids = await database.ubid_registry.count_documents(
+    {"$or": [{"ubid_status": "verified"}, {"review_status": {"$in": ["system_verified", "reviewer_verified"]}}]}
+  )
 
   confidence_distribution = [
     {"range": "90-100", "count": await database.match_candidates.count_documents({"confidence": {"$gte": 90}})},
@@ -29,10 +33,15 @@ async def build_dashboard_summary(database: AsyncIOMotorDatabase) -> dict:
   return {
     "metrics": {
       "total_source_records": await database.source_records.count_documents({}),
+      "total_business_submissions": business_submissions,
       "departments_connected": len(departments),
       "ubids_generated": await database.ubid_registry.count_documents({}),
       "auto_linked_records": auto_linked,
       "pending_human_reviews": pending_reviews,
+      "pending_verification": await database.ubid_registry.count_documents(
+        {"ubid_status": {"$in": ["provisional", "needs_review"]}}
+      ),
+      "verified_ubids": verified_ubids,
       "unmatched_activity_events": unmatched_events,
     },
     "status_breakdown": status_breakdown,

@@ -125,7 +125,7 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
         <button className="tab active" type="button">
           Identity record
         </button>
-        <button className="tab" type="button" onClick={() => onNavigate("resolution")}>
+        <button className="tab" type="button" onClick={() => onNavigate("graph")}>
           Source links
         </button>
         <button className="tab" type="button" onClick={() => onNavigate("audit")}>
@@ -160,7 +160,9 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
             <MetaCell label="Type" value={business.type} />
             <MetaCell label="District" value={business.district} />
             <MetaCell label="Active since" value={business.since} />
-            <MetaCell label="Review status" value={business.status === "review" ? "Officer review" : "System verified"} />
+            <MetaCell label="Source type" value="department_ingested" />
+            <MetaCell label="UBID status" value={business.status === "review" ? "needs_review" : "verified"} />
+            <MetaCell label="Review status" value={business.status === "review" ? "Officer review" : "reviewer_verified"} />
           </div>
         </div>
 
@@ -174,7 +176,7 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
                 className={`source-row ${source.status}`}
                 key={`${business.ubid}-${source.name}`}
                 type="button"
-                onClick={() => onNavigate(source.status === "partial" ? "review" : "resolution")}
+                onClick={() => onNavigate(source.status === "partial" ? "review" : "graph")}
               >
                 <div
                   className="src-icon"

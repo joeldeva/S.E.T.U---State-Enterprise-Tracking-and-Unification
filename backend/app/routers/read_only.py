@@ -17,6 +17,11 @@ async def get_source_records(limit: int = Query(default=100, ge=1, le=500)) -> l
   return await _list_collection("source_records", limit)
 
 
+@router.get("/business-submissions")
+async def get_business_submissions_legacy(limit: int = Query(default=100, ge=1, le=500)) -> list[dict]:
+  return await _list_collection("business_submissions", limit)
+
+
 @router.get("/normalized-records")
 async def get_normalized_records(limit: int = Query(default=100, ge=1, le=500)) -> list[dict]:
   return await _list_collection("normalized_records", limit)
