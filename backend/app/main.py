@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .db import close_mongo_connection, connect_to_mongo, get_database
+from .db import close_mongo_connection, connect_to_mongo, get_database, get_database_mode
 from .routers import api_router
 from .seed.synthetic_data import seed_database
 
@@ -43,4 +43,5 @@ async def health() -> dict[str, str]:
     "status": "ok",
     "database": settings.mongodb_db,
     "mode": "synthetic-read-only",
+    "database_mode": get_database_mode(),
   }

@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
 import { complianceBadges, guidedDemoSteps, moduleNarratives } from "./data/demoContent";
 import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
+import AuditLogsScreen from "./screens/AuditLogsScreen";
 import BiQueryEngineScreen from "./screens/BiQueryEngineScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import ExecutiveDashboardScreen from "./screens/ExecutiveDashboardScreen";
@@ -129,6 +130,8 @@ function App() {
         <IdentityGraphScreen />
       ) : activeScreen === "map" ? (
         <PinCodeMapScreen />
+      ) : activeScreen === "audit" ? (
+        <AuditLogsScreen />
       ) : (
         <PlaceholderScreen
           icon={activeDefinition.icon ?? BarChart3}
