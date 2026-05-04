@@ -1,7 +1,6 @@
-import { CheckCircle2, ChevronLeft, ChevronRight, Download, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search, X } from "lucide-react";
 import type { ReactNode } from "react";
 import type { ScreenDefinition, ScreenId } from "../types";
-import type { ModuleNarrative } from "../data/demoContent";
 
 interface GuidedDemoState {
   enabled: boolean;
@@ -20,8 +19,6 @@ interface AppShellProps {
   activeScreen: ScreenId;
   activeTitle: string;
   onNavigate: (screen: ScreenId) => void;
-  complianceBadges: string[];
-  moduleNarrative: ModuleNarrative;
   guidedDemo: GuidedDemoState;
   children: ReactNode;
 }
@@ -31,8 +28,6 @@ function AppShell({
   activeScreen,
   activeTitle,
   onNavigate,
-  complianceBadges,
-  moduleNarrative,
   guidedDemo,
   children,
 }: AppShellProps) {
@@ -103,15 +98,6 @@ function AppShell({
           </div>
         </header>
 
-        <div className="compliance-badges" aria-label="K-BIG compliance guardrails">
-          {complianceBadges.map((badge) => (
-            <span key={badge}>
-              <CheckCircle2 size={13} aria-hidden="true" />
-              {badge}
-            </span>
-          ))}
-        </div>
-
         {guidedDemo.enabled ? (
           <section className="guided-demo-bar" aria-label="Guided demo controls">
             <div>
@@ -135,21 +121,6 @@ function AppShell({
             </div>
           </section>
         ) : null}
-
-        <section className="judge-card-grid" aria-label="Judge-facing module explanation">
-          <article className="judge-card">
-            <span>What this module proves</span>
-            <p>{moduleNarrative.proves}</p>
-          </article>
-          <article className="judge-card">
-            <span>Why it matters for Karnataka Government</span>
-            <p>{moduleNarrative.matters}</p>
-          </article>
-          <article className="judge-card">
-            <span>How it satisfies non-negotiables</span>
-            <p>{moduleNarrative.satisfies}</p>
-          </article>
-        </section>
 
         <div className="content">{children}</div>
       </main>

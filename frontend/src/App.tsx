@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
-import { complianceBadges, guidedDemoSteps, moduleNarratives } from "./data/demoContent";
+import { guidedDemoSteps } from "./data/demoContent";
 import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
 import AuditLogsScreen from "./screens/AuditLogsScreen";
 import BiQueryEngineScreen from "./screens/BiQueryEngineScreen";
@@ -100,8 +100,6 @@ function App() {
       activeScreen={activeScreen}
       activeTitle={activeDefinition.label}
       onNavigate={navigate}
-      complianceBadges={complianceBadges}
-      moduleNarrative={moduleNarratives[activeScreen]}
       guidedDemo={{
         enabled: isGuidedDemo,
         currentIndex: guidedStepIndex,

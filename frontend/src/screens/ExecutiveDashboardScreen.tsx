@@ -10,7 +10,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { guidedDemoSteps } from "../data/demoContent";
 import { seedBusinesses } from "../data/seedBusinesses";
 import type { ScreenId } from "../types";
 
@@ -36,6 +35,14 @@ const impactItems = [
   "Ambiguous matches routed to officers",
   "Queries previously impossible are now possible",
   "Works without modifying department systems",
+];
+
+const dashboardCompliance = [
+  "Synthetic Data",
+  "Read-Only Source Integration",
+  "Explainable Decisions",
+  "Human Review",
+  "Reversible Merge",
 ];
 
 const priorityCases = [
@@ -69,21 +76,29 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
       <div className="dashboard-hero">
         <div className="dashboard-copy">
           <p className="eyebrow">Karnataka Business Intelligence Grid</p>
-          <h1>K-BIG control room</h1>
+          <h1>Executive Dashboard</h1>
           <p>
-            A read-only intelligence layer that assigns one trusted UBID per business, explains each linkage decision,
-            and classifies activity status from synthetic government events.
+            Unified business identity, reviewer workload, activity status, and priority intelligence queries.
           </p>
         </div>
         <div className="dashboard-actions">
-          <button className="btn-primary demo-start" type="button" onClick={onStartDemo}>
-            Start Guided Demo
+          <button className="btn-ghost demo-start" type="button" onClick={onStartDemo}>
+            Walkthrough
             <ArrowRight size={15} aria-hidden="true" />
           </button>
-          <button className="btn-ghost" type="button" onClick={() => onNavigate("queries")}>
+          <button className="btn-primary" type="button" onClick={() => onNavigate("queries")}>
             Run Karnataka Query
           </button>
         </div>
+      </div>
+
+      <div className="dashboard-compliance" aria-label="Prototype compliance controls">
+        {dashboardCompliance.map((item) => (
+          <span key={item}>
+            <ShieldCheck size={13} aria-hidden="true" />
+            {item}
+          </span>
+        ))}
       </div>
 
       <div className="dashboard-metrics">
@@ -170,21 +185,6 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
             ))}
           </div>
         </article>
-      </div>
-
-      <div className="demo-flow-panel">
-        <div className="panel-header compact">
-          <span className="panel-title">Guided Demo Flow</span>
-          <span className="panel-count">10 judge scenes</span>
-        </div>
-        <div className="demo-flow-list">
-          {guidedDemoSteps.map((step, index) => (
-            <button className="demo-flow-step" key={step.id} type="button" onClick={() => onNavigate(step.id)}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{step.label}</strong>
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="module-shortcuts">

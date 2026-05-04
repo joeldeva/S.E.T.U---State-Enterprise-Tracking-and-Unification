@@ -1980,11 +1980,11 @@ button:disabled {
 }
 
 .guided-demo-bar {
-  margin: 12px 24px 0;
+  margin: 8px 24px 0;
   border: 1px solid rgba(242, 100, 25, 0.34);
   background: linear-gradient(90deg, rgba(242, 100, 25, 0.14), rgba(38, 168, 130, 0.08));
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 7px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2000,13 +2000,13 @@ button:disabled {
 .guided-step-count {
   font-family: "IBM Plex Mono", monospace;
   color: var(--orange2);
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
 }
 
 .guided-demo-bar strong {
   color: var(--text);
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .guided-controls {
@@ -2046,17 +2046,17 @@ button:disabled {
 }
 
 .dashboard-screen {
-  padding: 16px 24px 24px;
+  padding: 14px 24px 22px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .dashboard-hero {
   background: var(--surface2);
   border: 1px solid var(--border2);
   border-radius: 8px;
-  padding: 18px;
+  padding: 14px 16px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -2068,9 +2068,9 @@ button:disabled {
 }
 
 .dashboard-copy h1 {
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.1;
-  margin: 4px 0 8px;
+  margin: 3px 0 5px;
   letter-spacing: 0;
 }
 
@@ -2088,7 +2088,30 @@ button:disabled {
 }
 
 .demo-start {
-  min-height: 38px;
+  min-height: 32px;
+}
+
+.dashboard-compliance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.dashboard-compliance span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #475569;
+  font-size: 11px;
+  padding: 5px 9px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.dashboard-compliance svg {
+  color: var(--green2);
 }
 
 .dashboard-metrics {
@@ -2925,7 +2948,6 @@ body {
 
 @media (max-width: 780px) {
   .topbar,
-  .compliance-badges,
   .judge-card-grid,
   .guided-demo-bar {
     margin-inline: 0;
