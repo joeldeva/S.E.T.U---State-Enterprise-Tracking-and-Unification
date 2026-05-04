@@ -1,6 +1,6 @@
-# K-BIG Backend and API Setup
+# S.E.T.U Backend and API Setup
 
-The backend is a FastAPI application that serves synthetic K-BIG data, entity-resolution workflows, reviewer decisions, activity intelligence, BI queries, map summaries, and audit logs.
+The backend is a FastAPI application that serves synthetic S.E.T.U data, entity-resolution workflows, reviewer decisions, activity intelligence, BI queries, map summaries, and audit logs.
 
 In the single Vercel deployment, FastAPI is exposed through:
 
@@ -21,7 +21,7 @@ Set these in the Vercel project:
 
 ```text
 MONGODB_URI=<MongoDB Atlas connection string>
-MONGODB_DB=kbig_demo
+MONGODB_DB=setu_demo
 APP_ENV=production
 ```
 

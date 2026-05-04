@@ -10,10 +10,10 @@ def _csv_env(name: str, default: str) -> list[str]:
 
 @dataclass(frozen=True)
 class Settings:
-  app_name: str = os.getenv("APP_NAME", "K-BIG Backend")
+  app_name: str = os.getenv("APP_NAME", "S.E.T.U Backend")
   environment: str = os.getenv("APP_ENV", "local")
   mongodb_uri: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
-  mongodb_db: str = os.getenv("MONGODB_DB", "kbig_demo")
+  mongodb_db: str = os.getenv("MONGODB_DB", "setu_demo")
   allowed_origins: tuple[str, ...] = tuple(
     _csv_env(
       "CORS_ORIGINS",

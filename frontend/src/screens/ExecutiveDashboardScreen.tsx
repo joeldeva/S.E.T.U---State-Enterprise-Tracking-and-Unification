@@ -71,7 +71,7 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
     <section className="dashboard-screen">
       <div className="dashboard-hero">
         <div className="dashboard-copy">
-          <p className="eyebrow">Karnataka Business Intelligence Grid</p>
+          <p className="eyebrow">State Enterprise Tracking and Unification</p>
           <h1>Executive Dashboard</h1>
           <p>
             Unified business identity, reviewer workload, activity status, and priority intelligence queries.

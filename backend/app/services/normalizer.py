@@ -130,7 +130,7 @@ def hash_identifier(value: Any, kind: str) -> str | None:
   if not compact:
     return None
 
-  digest = hashlib.sha256(f"kbig-demo:{kind}:{compact}".encode("utf-8")).hexdigest()[:16]
+  digest = hashlib.sha256(f"setu-demo:{kind}:{compact}".encode("utf-8")).hexdigest()[:16]
   return f"hash_demo_{kind}_{digest}"
 
 

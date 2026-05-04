@@ -34,7 +34,7 @@ def generate_ubid(anchor_hash: str | None, source_ids: list[str]) -> str:
     return KNOWN_DEMO_UBIDS[anchor_hash]
 
   key = anchor_hash or "|".join(sorted(source_ids))
-  digest = hashlib.sha1(f"kbig-ubid:{key}".encode("utf-8")).hexdigest()[:12].upper()
+  digest = hashlib.sha1(f"setu-ubid:{key}".encode("utf-8")).hexdigest()[:12].upper()
   return f"KA-UBID-{digest}"
 
 

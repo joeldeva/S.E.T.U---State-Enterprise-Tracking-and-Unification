@@ -33,7 +33,7 @@ export const guidedDemoSteps: DemoStep[] = [
 
 export const moduleNarratives: Record<ScreenId, ModuleNarrative> = {
   dashboard: {
-    proves: "K-BIG is a control-room layer, not just a table of duplicate records.",
+    proves: "S.E.T.U is a control-room layer, not just a table of duplicate records.",
     matters: "Decision makers can see linked identities, status mix, review pressure, and policy risk in one place.",
     satisfies: "The dashboard makes synthetic data, read-only integration, human review, and reversibility visible from the first screen.",
   },
@@ -78,7 +78,7 @@ export const moduleNarratives: Record<ScreenId, ModuleNarrative> = {
     satisfies: "Edges carry confidence and status so every relationship remains explainable.",
   },
   map: {
-    proves: "K-BIG can summarize business intelligence at PIN-code level without exposing exact locations.",
+    proves: "S.E.T.U can summarize business intelligence at PIN-code level without exposing exact locations.",
     matters: "Policy users can identify active clusters, dormant pockets, and high-risk inspection zones.",
     satisfies: "Only synthetic coordinates and aggregate counts are shown, keeping raw addresses out of the map.",
   },

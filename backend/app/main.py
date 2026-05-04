@@ -18,8 +18,8 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-  title="K-BIG Karnataka Business Intelligence Grid API",
-  description="Synthetic read-only backend foundation for the K-BIG prototype.",
+  title="S.E.T.U State Enterprise Tracking and Unification API",
+  description="Synthetic read-only backend foundation for the S.E.T.U prototype.",
   version="0.1.0",
   lifespan=lifespan,
 )

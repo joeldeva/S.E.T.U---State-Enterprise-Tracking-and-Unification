@@ -63,7 +63,7 @@ def hash_identifier(value: str | None, prefix: str = "hash_self") -> str | None:
   cleaned = _clean_identifier(value)
   if not cleaned:
     return None
-  digest = hashlib.sha256(f"kbig:{cleaned}".encode("utf-8")).hexdigest()[:16]
+  digest = hashlib.sha256(f"setu:{cleaned}".encode("utf-8")).hexdigest()[:16]
   return f"{prefix}_{digest}"
 
 

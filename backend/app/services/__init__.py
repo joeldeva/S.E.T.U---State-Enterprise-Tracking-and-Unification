@@ -1,1 +1,1 @@
-"""Backend services for read-only K-BIG prototype behavior."""
+"""Backend services for read-only S.E.T.U prototype behavior."""

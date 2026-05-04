@@ -9,7 +9,7 @@ export default {
         mono: ["IBM Plex Mono", "monospace"],
       },
       colors: {
-        kbig: {
+        setu: {
           navy: "#0B1F3A",
           surface: "#0F2035",
           orange: "#F26419",

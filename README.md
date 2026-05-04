@@ -1,6 +1,6 @@
-# K-BIG - Karnataka Business Intelligence Grid
+# S.E.T.U - State Enterprise Tracking and Unification
 
-K-BIG is a product demo for a read-only business intelligence layer above Karnataka department systems. It creates a stable Unified Business Identifier (UBID), explains every record-linkage decision, routes uncertain matches to human review, and classifies businesses as Active, Dormant, Closed, or Insufficient Data using activity evidence.
+S.E.T.U is a product demo for a read-only business intelligence layer above Karnataka department systems. It creates a stable Unified Business Identifier (UBID), explains every record-linkage decision, routes uncertain matches to human review, and classifies businesses as Active, Dormant, Closed, or Insufficient Data using activity evidence.
 
 The application is designed as a working government SaaS dashboard, not a slide deck. The React frontend, FastAPI backend, identity-resolution services, activity intelligence, BI queries, graph view, map view, and audit log are deployed together as one Vercel project.
 
@@ -47,7 +47,7 @@ requirements.txt         # Python dependencies for Vercel
 
 ## Deployment
 
-K-BIG is configured for one Vercel project:
+S.E.T.U is configured for one Vercel project:
 
 - `/` serves the React frontend from `frontend/dist`
 - `/api/...` serves the FastAPI backend through `api/index.py`
@@ -67,7 +67,7 @@ Environment variables for a persistent product demo:
 
 ```text
 MONGODB_URI=<MongoDB Atlas connection string>
-MONGODB_DB=kbig_demo
+MONGODB_DB=setu_demo
 APP_ENV=production
 ```
 

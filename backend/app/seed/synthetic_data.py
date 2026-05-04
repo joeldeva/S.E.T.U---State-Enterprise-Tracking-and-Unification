@@ -540,7 +540,7 @@ AUDIT_LOGS: list[dict[str, Any]] = [
     "_id": "audit_001",
     "action": "seed_loaded",
     "actor": "system",
-    "target": "kbig_demo",
+    "target": "setu_demo",
     "before": {},
     "after": {"collections": 7},
     "reason": "Synthetic demo data loaded for Phase 2 backend foundation.",

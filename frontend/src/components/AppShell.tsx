@@ -37,14 +37,14 @@ function AppShell({
     <div className="app">
       <aside className="sidebar">
         <button className="logo" type="button" onClick={() => onNavigate("dashboard")}>
-          <div className="logo-hex">K</div>
+          <div className="logo-hex">S</div>
           <div>
-            <div className="logo-text">K-BIG</div>
+            <div className="logo-text">S.E.T.U</div>
             <div className="logo-sub">Karnataka</div>
           </div>
         </button>
 
-        <nav className="nav" aria-label="K-BIG modules">
+        <nav className="nav" aria-label="S.E.T.U modules">
           {sections.map((section) => (
             <div key={section}>
               <div className="nav-section">{section}</div>

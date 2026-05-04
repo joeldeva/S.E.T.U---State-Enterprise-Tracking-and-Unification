@@ -1,1 +1,1 @@
-"""K-BIG backend package."""
+"""S.E.T.U backend package."""

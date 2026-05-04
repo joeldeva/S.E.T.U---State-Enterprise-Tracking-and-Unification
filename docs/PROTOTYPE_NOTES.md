@@ -1,13 +1,13 @@
-# K-BIG - Karnataka Business Intelligence Grid
+# S.E.T.U - State Enterprise Tracking and Unification
 
 ## Product Demo Status
 
-K-BIG is currently configured as a single-project Vercel product demo.
+S.E.T.U is currently configured as a single-project Vercel product demo.
 
 Current preserved original prototype file:
 
 ```text
-frontend/raw-html-prototype/kbig_ubid_identity_engine.html
+frontend/raw-html-prototype/setu_ubid_identity_engine.html
 ```
 
 Current application shape:
@@ -29,7 +29,7 @@ Current application shape:
 
 ## Department Field Alignment Rationale
 
-K-BIG/SETU now treats PAN and GSTIN as optional identity signals, not mandatory anchors. The mock department database and normalization logic prioritize fields commonly present in Karnataka department workflows: establishment/business name, postal/site address, district, PIN code, employer/owner/promoter/authorised signatory details, contact information, registration/licence/consent numbers, utility consumer numbers, commencement/registration/renewal/inspection dates, and department status flags.
+S.E.T.U now treats PAN and GSTIN as optional identity signals, not mandatory anchors. The mock department database and normalization logic prioritize fields commonly present in Karnataka department workflows: establishment/business name, postal/site address, district, PIN code, employer/owner/promoter/authorised signatory details, contact information, registration/licence/consent numbers, utility consumer numbers, commencement/registration/renewal/inspection dates, and department status flags.
 
 Research notes used for this alignment:
 

@@ -1,8 +1,8 @@
-# K-BIG Deployment Specification
+# S.E.T.U Deployment Specification
 
 ## Target Shape
 
-K-BIG deploys as one Vercel project from the repository root.
+S.E.T.U deploys as one Vercel project from the repository root.
 
 ```text
 https://your-project.vercel.app/          React frontend
@@ -47,7 +47,7 @@ Production MongoDB:
 
 ```text
 MONGODB_URI=<MongoDB Atlas connection string>
-MONGODB_DB=kbig_demo
+MONGODB_DB=setu_demo
 APP_ENV=production
 ```
 
@@ -58,7 +58,7 @@ Do not set `VITE_API_BASE_URL` for the single-project deployment.
 After deployment:
 
 ```text
-/                     loads the K-BIG UI
+/                     loads the S.E.T.U UI
 /health               returns backend JSON
 /api/dashboard        returns dashboard JSON
 /api/matching/run     accepts POST

@@ -43,7 +43,7 @@ function PinCodeMap({ data, selectedPinCode, onSelect }: PinCodeMapProps) {
         sources: {},
         layers: [
           {
-            id: "kbig-background",
+            id: "setu-background",
             type: "background",
             paint: {
               "background-color": "#EEF3F8",
