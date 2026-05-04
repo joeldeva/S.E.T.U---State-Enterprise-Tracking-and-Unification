@@ -1,52 +1,49 @@
-# K-BIG Backend Setup
+# K-BIG Backend and API Setup
 
-The Phase 2 backend is a FastAPI API backed by MongoDB. It seeds synthetic demo data on startup if the collections are empty.
+The backend is a FastAPI application that serves synthetic K-BIG data, entity-resolution workflows, reviewer decisions, activity intelligence, BI queries, map summaries, and audit logs.
 
-## Guardrails
+In the single Vercel deployment, FastAPI is exposed through:
 
-- Synthetic data only.
-- PAN/GSTIN-like values are represented only as demo hashes.
-- Source department systems are modeled as read-only inputs.
-- No hosted LLM calls are used for identity matching.
-- Phase 2 does not implement reviewer write actions or full matching logic.
-
-## Run With Docker Compose
-
-```bash
-docker compose up --build
+```text
+api/index.py
 ```
 
-Services:
+Routes are served on the same domain as the frontend:
 
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:8000`
-- Backend docs: `http://localhost:8000/docs`
-- MongoDB: `mongodb://localhost:27017`
+```text
+/health
+/api/...
+```
 
-## Run Backend Locally
+## Production Environment Variables
 
-Install dependencies:
+Set these in the Vercel project:
 
-```bash
+```text
+MONGODB_URI=<MongoDB Atlas connection string>
+MONGODB_DB=kbig_demo
+APP_ENV=production
+```
+
+`MONGODB_URI` is required for durable database storage. Without it, the backend may run in mock mode for demonstration only.
+
+## Local Backend Run
+
+```powershell
 cd backend
 python -m venv .venv
-.venv\Scripts\activate
-python -m pip install -r requirements.txt
-```
-
-Start MongoDB locally or through Docker:
-
-```bash
-docker compose up mongodb
-```
-
-Run the API:
-
-```bash
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-## Read-Only Endpoints
+Health check:
+
+```powershell
+curl http://localhost:8000/health
+```
+
+## Main Endpoints
 
 - `GET /health`
 - `GET /api/dashboard`
@@ -58,6 +55,12 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 - `GET /api/review-queue`
 - `GET /api/activity-events`
 - `GET /api/audit-logs`
+- `POST /api/matching/run`
+- `POST /api/review-queue/{case_id}/decision`
+- `POST /api/activity/run`
+- `GET /api/queries/prebuilt`
+- `GET /api/queries/active-factories-no-inspection`
+- `GET /api/map/pincode-summary`
 
 ## Seeded Collections
 
@@ -68,3 +71,12 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 - `review_queue`
 - `activity_events`
 - `audit_logs`
+
+## Guardrails
+
+- Synthetic data only
+- PAN/GSTIN-like values are represented as hashes or masked values
+- Source department systems are modeled as read-only inputs
+- No hosted LLM calls are used for identity matching
+- Match candidates include confidence, decision zone, evidence, and explanation
+- Reviewer decisions create audit logs

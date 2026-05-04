@@ -1,13 +1,28 @@
 # K-BIG - Karnataka Business Intelligence Grid
 
-## Prototype Status
+## Product Demo Status
 
-Current prototype file location:
+K-BIG is currently configured as a single-project Vercel product demo.
 
-`frontend/raw-html-prototype/kbig_ubid_identity_engine.html`
+Current preserved original prototype file:
+
+```text
+frontend/raw-html-prototype/kbig_ubid_identity_engine.html
+```
+
+Current application shape:
+
+- React/Vite frontend under `frontend/`
+- FastAPI backend under `backend/`
+- Vercel API entrypoint at `api/index.py`
+- Single-project Vercel routing in `vercel.json`
+- MongoDB Atlas supported through `MONGODB_URI`
 
 ## Governance Notes
 
-- This prototype uses synthetic data only.
+- This product demo uses synthetic data only.
 - Source department systems are treated as read-only.
-- All automated decisions must be explainable and reversible.
+- Automated decisions must be explainable.
+- Merge/reviewer decisions must be auditable and reversible in concept.
+- No hosted LLM is used for identity matching.
+- Raw PAN/GSTIN values must not be exposed in the UI.
