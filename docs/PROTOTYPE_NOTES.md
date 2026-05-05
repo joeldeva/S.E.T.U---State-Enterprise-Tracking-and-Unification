@@ -1,62 +1,198 @@
-# S.E.T.U - State Enterprise Tracking and Unification
+# SETU / K-BIG Prototype Notes
 
-## Product Demo Status
+This document records the product assumptions, governance guardrails, dataset design, and prototype-vs-production boundary for SETU / K-BIG.
 
-S.E.T.U is currently configured as a single-project Vercel product demo.
+## Current Prototype Status
 
-Current preserved original prototype file:
+SETU is configured as a single-project Vercel demo with:
+
+- React/Vite frontend under `frontend/`
+- FastAPI backend under `backend/`
+- Vercel API entrypoint at `api/index.py`
+- Synthetic CSV mock database under `data/mock_database/`
+- Single-project routing in `vercel.json`
+- MongoDB support through `MONGODB_URI`
+- Mock/in-memory fallback for demo environments without MongoDB
+
+Preserved original HTML prototype:
 
 ```text
 frontend/raw-html-prototype/setu_ubid_identity_engine.html
 ```
 
-Current application shape:
+## Problem Statement Fit
 
-- React/Vite frontend under `frontend/`
-- FastAPI backend under `backend/`
-- Vercel API entrypoint at `api/index.py`
-- Single-project Vercel routing in `vercel.json`
-- MongoDB Atlas supported through `MONGODB_URI`
+The prototype addresses the Karnataka Government need for:
 
-## Governance Notes
+- A Unified Business Identifier (UBID) across fragmented department records
+- Explainable linking between records that may not share PAN/GSTIN
+- Human review for ambiguous or conflicting matches
+- Activity intelligence for Active, Dormant, Closed, and Unknown/Insufficient Data states
+- Audit logs and reversible/deactivatable link concepts
+- BI queries, graph inspection, and area-level intelligence
 
-- This product demo uses synthetic data only.
-- Source department systems are treated as read-only.
-- Automated decisions must be explainable.
-- Merge/reviewer decisions must be auditable and reversible in concept.
-- No hosted LLM is used for identity matching.
-- Raw PAN/GSTIN values must not be exposed in the UI.
+## Research Alignment
+
+SETU treats PAN and GSTIN as useful signals, not mandatory anchors.
+
+Official e-Karmika Shops and Commercial Establishments SOP material from the Government of Karnataka Department of Labour describes an online application process, officer verification, and document uploads such as owner identity/address proof, establishment address proof, incorporation certificate where applicable, and signed registration form. This supports matching models that use establishment identity, address, owner/signatory, and document/licence evidence rather than PAN/GSTIN alone.
+
+Source: [e-Karmika SOP/help manual, Government of Karnataka Department of Labour](https://www.ekarmika.karnataka.gov.in/ekarmika/Documents/SOP%20HELP%20MANUAL%20Shops%20and%20establishment.pdf)
+
+## Dataset Design
+
+Prototype dataset:
+
+| Dataset item | Count |
+| --- | ---: |
+| Department business records | 447 |
+| Business dataset columns | 45 |
+| Activity events | 750 |
+| Departments represented | 7 |
+| Missing PAN records | 105 |
+| Missing GSTIN records | 118 |
+| Invalid PAN-format rows | 10 |
+| Invalid GSTIN-format rows | 8 |
+| PAN/GSTIN mismatch rows | 35 |
+| Event types | 11 |
+
+Departments represented:
+
+- Shops and Establishments
+- Factories
+- Labour
+- KSPCB
+- BESCOM
+- BWSSB
+- Local Body / Trade Licence
+
+The mock business dataset includes:
+
+- Clean cross-department matches
+- Slight business-name differences
+- Address spelling/abbreviation differences
+- Missing PAN/GSTIN cases
+- Invalid PAN/GSTIN cases
+- PAN/GSTIN mismatch cases
+- Licence-only matches
+- BESCOM/BWSSB consumer-number matches
+- Owner/signatory/contact evidence
+- Kannada/transliteration-style name examples
+- False-friend business names that should not merge
+- Provisional/unresolved cases
+
+The activity dataset includes:
+
+- Renewal
+- Compliance filing
+- Inspection
+- Electricity usage
+- Water usage
+- Licence update
+- Pollution consent
+- Trade licence renewal
+- Low utility consumption
+- Closure application
+- Licence cancelled
+
+## Identity Model
+
+SETU separates:
+
+- **Legal entity anchor:** PAN/GSTIN hash/status when available.
+- **Establishment / operating unit UBID:** The business establishment identity across department systems.
+
+This distinction matters because PAN/GSTIN can represent legal/tax identity, while the UBID is meant to represent the operating establishment or business unit that appears across Karnataka department records.
+
+## Matching Model
+
+Evidence signals:
+
+- PAN/GSTIN match
+- Licence number match
+- Utility consumer number match
+- Business-name similarity
+- Address similarity
+- PIN/district match
+- Owner/contact/signatory similarity
+- Conflict penalties
+
+Decision thresholds:
+
+| Confidence | Decision |
+| --- | --- |
+| 90-100 | Auto-link |
+| 65-89 | Human Review |
+| Below 65 | Keep separate or create provisional UBID |
+
+Thresholds are conservative because a wrong merge is more harmful than a missed merge in a government identity system.
+
+## Activity Intelligence Model
+
+Activity status is inferred from events, not guessed from a single department field.
+
+Operational status examples:
+
+- **Active:** Recent renewal, inspection, compliance filing, or utility usage.
+- **Dormant:** Stale renewal/inspection/filing signals or low activity.
+- **Closed:** Closure application, licence cancellation, or shutdown-type evidence.
+- **Unknown/Insufficient Data:** Not enough evidence to classify confidently.
+
+Compliance risk is separate from operational status. A business can be operationally Active but still High Risk if licence, consent, or inspection evidence is stale.
+
+## Governance Guardrails
+
+- Synthetic data only
+- Source department systems modeled as read-only inputs
+- No hosted LLM used for identity matching
+- Raw PAN/GSTIN must not be exposed in UI or public API output
+- PAN/GSTIN demo outputs are masked or hashed
+- Ambiguous cases are routed to human review
+- Reviewer decisions are audit logged
+- Unmatched activity events are surfaced for review
+- Wrong links can be deactivated without deleting source records
+- Audit logs preserve actor, reason, before/after state, and timestamp where applicable
 
 ## Prototype vs Production Data Flow
 
-Prototype:
+| Prototype | Production |
+| --- | --- |
+| CSV/Excel-style synthetic mock database | Authorized APIs, secure pipelines, or scheduled exports |
+| Synthetic records and events only | Real department data with permissions |
+| Simulated identifier verification | Official validation services where authorized |
+| Local rule-based scoring | Calibrated scoring using reviewer decisions |
+| Demo role model | Role-based access control |
+| Demo audit logs | Durable audit retention and monitoring |
+| No hosted LLM for matching | No raw PII to hosted LLMs; strict data-sharing controls |
 
-- CSV/Excel mock database
-- Synthetic data only
+Potential production integrations:
 
-Production:
+- e-Karmika Shops and Establishments
+- Factories/e-Suraksha
+- KSPCB
+- BESCOM
+- BWSSB
+- Fire and Emergency Services
+- Food Safety
+- Local-body trade licence systems
 
-- Authorized APIs
-- Secure data pipelines
-- Scheduled exports
-- Role-based access
-- Audit logging
-- No raw PII to hosted LLMs
+## Demo Boundaries
 
-## Department Field Alignment Rationale
+The prototype is judge-ready for demonstrating workflow and architecture, but it does not claim:
 
-S.E.T.U now treats PAN and GSTIN as optional identity signals, not mandatory anchors. The mock department database and normalization logic prioritize fields commonly present in Karnataka department workflows: establishment/business name, postal/site address, district, PIN code, employer/owner/promoter/authorised signatory details, contact information, registration/licence/consent numbers, utility consumer numbers, commencement/registration/renewal/inspection dates, and department status flags.
+- Real government verification
+- Real PAN/GSTIN validation
+- Production-grade identity matching
+- Full Kannada NLP support
+- Production-grade security hardening
+- Official department-system integration
 
-Research notes used for this alignment:
+## Future Work
 
-- Karnataka Shops and Commercial Establishments Form A asks for establishment name and postal address, nature of business, employer/partner/director details, telephone/fax/email, commencement and employment details. The form structure supports matching by establishment identity, address, employer/signatory and business nature rather than assuming PAN/GSTIN is always present. Source: [Karnataka Shop Establishment Application Form A](https://d4h9pka4iq2rv.cloudfront.net/ApplicationForm/KarnatakaShopEstablishment-ApplicationFormA.pdf).
-- Karnataka Shops and Commercial Establishments Rules/Form references include registration certificate number/date, employer name, establishment postal address, establishment name, and nature of business. Source: [Karnataka Shops and Establishments Rules, 1963](https://www.datocms-assets.com/40521/1623320534-karnataka-shops-and-estalishment-rules-1963.pdf).
-- e-Karmika SOP/checklist material lists upload documents such as identity/address proof, establishment address proof, incorporation/MOA where applicable, signed Form A, and payment receipt. This supports modeling address-proof and establishment-document fields in the mock database. Source: [e-Karmika SOP/help manual mirror](https://www.scribd.com/document/885760316/SOP-HELP-MANUAL-Shops-and-Establishment).
-- Factory registration document checklists emphasize factory plans, fee challans, process write-up, possession/lease/sale/rental proof, questionnaire, stability certificate, KSPCB clearance where applicable, fire/NOC or local approvals where applicable, and other prescribed documents. This supports matching by factory licence, plan/stability references, site address, and KSPCB consent references. Source: [Karnataka Factory Registration documents overview](https://www.indiafilings.com/learn/karnataka-factory-registration).
-
-Implementation implications:
-
-- Licence, registration, consent, trade licence, BESCOM and BWSSB consumer numbers are strong local anchors.
-- Name/address/PIN/district similarity is secondary evidence when identifiers are missing.
-- Owner/promoter/signatory/contact fields add confidence but do not replace officer review for ambiguous cases.
-- PAN/GSTIN, when submitted, are validated and masked, but missing PAN/GSTIN does not block provisional UBID creation.
+- Connect authorized department APIs or secure scheduled exports
+- Add production authentication and role-based permissions
+- Expand Kannada and transliteration normalization
+- Calibrate scoring with reviewer-labelled examples
+- Add stronger duplicate-cluster review and batch operations
+- Add production observability and audit retention policies
+- Add encrypted storage and key-management controls for sensitive identifiers
