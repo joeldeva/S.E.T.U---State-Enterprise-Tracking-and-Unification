@@ -16,9 +16,9 @@
   --surface2: #ffffff;
   --surface3: #eef3f8;
   --surface4: #dbe4ef;
-  --orange: #1d4ed8;
-  --orange2: #1e40af;
-  --orangeA: rgba(29, 78, 216, 0.1);
+  --orange: #2563eb;
+  --orange2: #1d4ed8;
+  --orangeA: rgba(37, 99, 235, 0.1);
   --teal2: #047857;
   --tealA: rgba(4, 120, 87, 0.1);
   --amber2: #b45309;
@@ -40,6 +40,7 @@
   --border3: rgba(15, 23, 42, 0.22);
   --shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.07);
   --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.05), 0 10px 26px rgba(15, 23, 42, 0.04);
+  --glow-primary: 0 0 20px rgba(37, 99, 235, 0.18);
 }
 
 body {
@@ -97,6 +98,13 @@ button {
   font-size: 11px;
   font-weight: 600;
   color: #fff;
+  flex-shrink: 0;
+}
+
+.logo-mark {
+  width: 52px;
+  height: 42px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
@@ -250,40 +258,51 @@ button {
 
 .btn-primary,
 .btn-ghost {
-  border-radius: 6px;
+  border-radius: 999px; /* Pill shape for unique look */
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  min-height: 32px;
+  gap: 8px;
+  min-height: 36px;
   white-space: nowrap;
-  transition: all 0.15s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary {
-  background: var(--orange);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   border: none;
   color: #fff;
-  font-weight: 500;
-  padding: 7px 14px;
+  font-weight: 600;
+  padding: 8px 20px;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
 }
 
 .btn-primary:hover {
-  opacity: 0.88;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-ghost {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border2);
   color: var(--text2);
-  padding: 6px 12px;
+  padding: 7px 18px;
+  backdrop-filter: blur(8px);
 }
 
 .btn-ghost:hover {
-  border-color: var(--border3);
-  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
 }
 
 .content {
@@ -3141,7 +3160,8 @@ button:disabled {
   .learning-stats,
   .threshold-grid,
   .dashboard-secondary-metrics,
-  .case-record-pair {
+  .case-record-pair,
+  .identifier-check-row {
     grid-template-columns: 1fr;
   }
 
@@ -3182,7 +3202,8 @@ body {
 
 .logo {
   padding: 18px 18px;
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  background: #ffffff;
+  gap: 10px;
 }
 
 .logo-hex {
@@ -3192,9 +3213,25 @@ body {
   box-shadow: 0 8px 20px rgba(29, 78, 216, 0.22);
 }
 
+.logo-mark {
+  width: 58px;
+  height: 46px;
+}
+
 .logo-text,
 .topbar-title {
   color: var(--text);
+}
+
+.logo-text {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.logo-sub {
+  color: #64748b;
+  font-weight: 600;
 }
 
 .nav {
@@ -3728,6 +3765,76 @@ body {
 .validation-list {
   display: grid;
   gap: 8px;
+}
+
+.identifier-check-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.identifier-check-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.identifier-check-title svg {
+  color: var(--orange2);
+}
+
+.identifier-check-panel p {
+  color: var(--text3);
+  font-size: 11px;
+}
+
+.identifier-check-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  border-radius: 7px;
+  padding: 9px;
+}
+
+.identifier-check-row.ok {
+  border-color: rgba(4, 120, 87, 0.22);
+  background: rgba(4, 120, 87, 0.045);
+}
+
+.identifier-check-row.bad {
+  border-color: rgba(185, 28, 28, 0.22);
+  background: rgba(185, 28, 28, 0.045);
+}
+
+.identifier-check-row > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.identifier-check-row strong,
+.identifier-check-row span:not(.status-pill),
+.identifier-check-row small {
+  overflow-wrap: anywhere;
+}
+
+.identifier-check-row strong {
+  color: var(--text);
+}
+
+.identifier-check-row span:not(.status-pill),
+.identifier-check-row small {
+  color: var(--text3);
+  font-size: 11px;
 }
 
 .validation-row {

@@ -1,12 +1,14 @@
-import { AlertTriangle, CheckCircle2, FileUp, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileUp, SearchCheck, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   BusinessSubmission,
   BusinessSubmissionPayload,
+  IdentifierVerificationResponse,
   MockDatabaseSummary,
   fetchMockDatabaseSummary,
   submitBusinessInformation,
+  verifyBusinessIdentifiers,
 } from "../lib/api";
 
 type BusinessType = BusinessSubmissionPayload["business_type"];
@@ -84,6 +86,8 @@ function BusinessRegistrationScreen() {
   const [warnings, setWarnings] = useState<string[]>([]);
   const [statusText, setStatusText] = useState("Ready to validate business information.");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifyingIdentifiers, setIsVerifyingIdentifiers] = useState(false);
+  const [identifierVerification, setIdentifierVerification] = useState<IdentifierVerificationResponse | null>(null);
   const [mockSummary, setMockSummary] = useState<MockDatabaseSummary | null>(null);
 
   const validationPreview = useMemo(() => clientValidate(form), [form]);
@@ -116,6 +120,41 @@ function BusinessRegistrationScreen() {
 
   function updateField<K extends keyof BusinessSubmissionPayload>(field: K, value: BusinessSubmissionPayload[K]) {
     setForm((current) => ({ ...current, [field]: value }));
+    if (field === "pan" || field === "gstin") {
+      setIdentifierVerification(null);
+    }
+  }
+
+  async function handleVerifyIdentifiers() {
+    const pan = cleanIdentifier(form.pan);
+    const gstin = cleanIdentifier(form.gstin);
+
+    setErrors([]);
+    setWarnings([]);
+    if (!pan && !gstin) {
+      setErrors(["Enter PAN or GSTIN before checking identifier existence."]);
+      return;
+    }
+
+    setIsVerifyingIdentifiers(true);
+    setStatusText("Checking PAN/GSTIN against synthetic CSV registry.");
+    try {
+      const result = await verifyBusinessIdentifiers({ pan, gstin });
+      setIdentifierVerification(result);
+      setWarnings(result.warnings);
+      const foundCount = Number(result.pan.exists_in_mock_database) + Number(result.gstin.exists_in_mock_database);
+      setStatusText(
+        foundCount
+          ? "Identifier exists in the synthetic CSV department database."
+          : "Identifier format checked; no synthetic CSV registry match found.",
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Identifier verification failed.";
+      setErrors([message]);
+      setStatusText("Identifier verification API failed.");
+    } finally {
+      setIsVerifyingIdentifiers(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -215,6 +254,15 @@ function BusinessRegistrationScreen() {
           <section className="form-panel">
             <div className="panel-header compact">
               <span className="panel-title">Optional Tax Identifiers</span>
+              <button
+                className="btn-ghost compact-action"
+                type="button"
+                onClick={() => void handleVerifyIdentifiers()}
+                disabled={isVerifyingIdentifiers}
+              >
+                <SearchCheck size={14} aria-hidden="true" />
+                {isVerifyingIdentifiers ? "Checking" : "Check Exists"}
+              </button>
             </div>
             <div className="form-grid">
               <Field label="PAN" required={!form.gstin && !hasDepartmentReference}>
@@ -240,6 +288,7 @@ function BusinessRegistrationScreen() {
                 <input value={form.phone} onChange={(event) => updateField("phone", event.target.value)} />
               </Field>
             </div>
+            <IdentifierVerificationPanel result={identifierVerification} />
           </section>
 
           <section className="form-panel">
@@ -398,6 +447,51 @@ function ValidationRows({ form, warnings }: { form: BusinessSubmissionPayload; w
           <span>{row.optional ? `${row.label} - optional if alternate identifier is supplied` : row.label}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function IdentifierVerificationPanel({ result }: { result: IdentifierVerificationResponse | null }) {
+  return (
+    <div className="identifier-check-panel">
+      <div className="identifier-check-title">
+        <SearchCheck size={15} aria-hidden="true" />
+        Identifier existence check
+      </div>
+      {result ? (
+        <>
+          <IdentifierCheckRow item={result.pan} />
+          <IdentifierCheckRow item={result.gstin} />
+          {result.warnings.length ? <MessageList tone="warning" items={result.warnings} /> : null}
+          <p>{result.production_note}</p>
+        </>
+      ) : (
+        <p>
+          Use Check Exists to verify whether the submitted PAN/GSTIN exists in the synthetic CSV department database.
+          Production can connect the same backend adapter to authorized GSTN/GSP and PAN OPV APIs.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function IdentifierCheckRow({ item }: { item: IdentifierVerificationResponse["pan"] }) {
+  const tone = item.status === "exists_in_mock_database" ? "ok" : item.status === "invalid_format" ? "bad" : "muted";
+  const badgeClass = item.status === "exists_in_mock_database" ? "sp-active" : item.status === "invalid_format" ? "sp-closed" : "sp-dormant";
+
+  return (
+    <div className={`identifier-check-row ${tone}`}>
+      <div>
+        <strong>{item.kind.toUpperCase()}</strong>
+        <span>{item.masked_value ?? "Not provided"}</span>
+      </div>
+      <div>
+        <span className={`status-pill ${badgeClass}`}>
+          {item.exists_in_mock_database ? "Exists" : item.status === "not_found_in_mock_database" ? "Not found" : item.status.split("_").join(" ")}
+        </span>
+        <small>{item.message}</small>
+        {item.match_count ? <small>{item.match_count} masked department record match{item.match_count === 1 ? "" : "es"}</small> : null}
+      </div>
     </div>
   );
 }

@@ -37,6 +37,11 @@ router = APIRouter(prefix="/ingestion", tags=["business ingestion"])
 BusinessType = Literal["Proprietorship", "Partnership", "LLP", "Pvt Ltd", "Public Ltd", "Other"]
 
 
+class IdentifierVerificationRequest(BaseModel):
+  pan: str | None = None
+  gstin: str | None = None
+
+
 class BusinessSubmissionRequest(BaseModel):
   business_name: str = Field(min_length=1)
   business_type: BusinessType = "Other"
@@ -188,6 +193,43 @@ def _build_mock_match(payload: BusinessSubmissionRequest, warnings: list[str]) -
   return [], 0, "self_submitted_only", ["No matching record found in synthetic CSV department database."]
 
 
+def _identifier_result(kind: Literal["pan", "gstin"], value: str | None, matches: list[dict]) -> dict:
+  has_value = bool(_clean(value))
+  format_valid = validate_pan_format(value) if kind == "pan" else validate_gstin_format(value)
+  mask = mask_pan(value) if kind == "pan" else mask_gstin(value)
+
+  if not has_value:
+    status = "not_provided"
+    message = f"{kind.upper()} not provided."
+  elif not format_valid:
+    status = "invalid_format"
+    message = f"{kind.upper()} format is invalid."
+  elif matches:
+    status = "exists_in_mock_database"
+    message = f"{kind.upper()} exists in synthetic CSV department records."
+  else:
+    status = "not_found_in_mock_database"
+    message = f"{kind.upper()} format is valid, but it was not found in the synthetic CSV department records."
+
+  return {
+    "kind": kind,
+    "provided": has_value,
+    "masked_value": mask,
+    "format_valid": format_valid,
+    "exists_in_mock_database": bool(format_valid and matches),
+    "match_count": len(matches) if format_valid else 0,
+    "sample_matches": [mask_department_record(record) for record in matches[:5]] if format_valid else [],
+    "verification_source": "synthetic_csv_mock_database",
+    "status": status,
+    "message": message,
+    "live_verification": {
+      "available": False,
+      "provider": "not_configured",
+      "message": "Production can connect this adapter to an authorized GSTN/GSP GSTIN API and authorized PAN OPV provider. This prototype does not call government systems.",
+    },
+  }
+
+
 def _status_for_match(confidence: int, warnings: list[str]) -> tuple[str, str, str]:
   if warnings:
     return (
@@ -212,6 +254,30 @@ def _status_for_match(confidence: int, warnings: list[str]) -> tuple[str, str, s
     "Provisional - Self Submitted",
     "No confident synthetic department match found. Pending government verification / reviewer approval.",
   )
+
+
+@router.post("/identifier-verification")
+async def verify_business_identifiers(payload: IdentifierVerificationRequest) -> dict:
+  pan = _clean(payload.pan)
+  gstin = _clean(payload.gstin)
+  pan_matches = find_by_pan(pan) if pan else []
+  gstin_matches = find_by_gstin(gstin) if gstin else []
+  pan_format_valid = validate_pan_format(pan) if pan else False
+  gstin_format_valid = validate_gstin_format(gstin) if gstin else False
+  gstin_pan_consistent = check_gstin_pan_consistency(gstin, pan)
+  warnings: list[str] = []
+
+  if pan and gstin and pan_format_valid and gstin_format_valid and not gstin_pan_consistent:
+    warnings.append("GSTIN PAN section does not match the submitted PAN.")
+
+  return {
+    "pan": _identifier_result("pan", pan, pan_matches),
+    "gstin": _identifier_result("gstin", gstin, gstin_matches),
+    "gstin_pan_consistent": gstin_pan_consistent,
+    "warnings": warnings,
+    "privacy_note": "Raw PAN/GSTIN are not returned. The backend uses the submitted values only for validation and mock CSV lookup, then returns masked identifiers.",
+    "production_note": "For real existence checks, configure authorized GSTN/GSP GSTIN verification and authorized PAN OPV integration. Do not scrape public portals or send raw identifiers to hosted LLMs.",
+  }
 
 
 @router.post("/business-submission")

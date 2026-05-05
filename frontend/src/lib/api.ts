@@ -350,6 +350,33 @@ export interface BusinessSubmission {
   created_at: string;
 }
 
+export interface IdentifierVerificationItem {
+  kind: "pan" | "gstin";
+  provided: boolean;
+  masked_value?: string | null;
+  format_valid: boolean;
+  exists_in_mock_database: boolean;
+  match_count: number;
+  sample_matches: MockDepartmentRecord[];
+  verification_source: string;
+  status: "not_provided" | "invalid_format" | "exists_in_mock_database" | "not_found_in_mock_database";
+  message: string;
+  live_verification: {
+    available: boolean;
+    provider: string;
+    message: string;
+  };
+}
+
+export interface IdentifierVerificationResponse {
+  pan: IdentifierVerificationItem;
+  gstin: IdentifierVerificationItem;
+  gstin_pan_consistent: boolean;
+  warnings: string[];
+  privacy_note: string;
+  production_note: string;
+}
+
 export type ReviewDecision =
   | "approve_merge"
   | "reject_match"
@@ -474,6 +501,15 @@ export function fetchMockDatabaseSummary(): Promise<MockDatabaseSummary> {
 
 export function fetchMockDatabaseRecords(): Promise<MockDepartmentRecord[]> {
   return apiFetch<MockDepartmentRecord[]>("/api/mock-database/records");
+}
+
+export function verifyBusinessIdentifiers(
+  payload: Pick<BusinessSubmissionPayload, "pan" | "gstin">,
+): Promise<IdentifierVerificationResponse> {
+  return apiFetch<IdentifierVerificationResponse>("/api/ingestion/identifier-verification", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function fetchReviewFeedbackSummary(): Promise<ReviewFeedbackSummary> {

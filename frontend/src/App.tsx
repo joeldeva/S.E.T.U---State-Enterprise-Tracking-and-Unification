@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity,
   BarChart3,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import AppShell from "./components/AppShell";
+import IntroScreen from "./components/IntroScreen";
 import { guidedDemoSteps } from "./data/demoContent";
 import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
 import AuditLogsScreen from "./screens/AuditLogsScreen";
@@ -52,6 +54,7 @@ const placeholderCopy: Record<Exclude<ScreenId, "ubid">, string> = {
 };
 
 function App() {
+  const [showIntro, setShowIntro] = useState(true);
   const [activeScreen, setActiveScreen] = useState<ScreenId>("dashboard");
   const [isGuidedDemo, setIsGuidedDemo] = useState(false);
   const [guidedStepIndex, setGuidedStepIndex] = useState(0);
@@ -92,52 +95,77 @@ function App() {
   const currentStep = guidedDemoSteps[guidedStepIndex];
 
   return (
-    <AppShell
-      screens={screens}
-      activeScreen={activeScreen}
-      activeTitle={activeDefinition.label}
-      onNavigate={navigate}
-      guidedDemo={{
-        enabled: isGuidedDemo,
-        currentIndex: guidedStepIndex,
-        total: guidedDemoSteps.length,
-        currentLabel: currentStep.label,
-        canPrevious: guidedStepIndex > 0,
-        canNext: guidedStepIndex < guidedDemoSteps.length - 1,
-        onPrevious: () => moveGuidedDemo(-1),
-        onNext: () => moveGuidedDemo(1),
-        onEnd: endGuidedDemo,
-      }}
-    >
-      {activeScreen === "dashboard" ? (
-        <ExecutiveDashboardScreen onNavigate={navigate} onStartDemo={startGuidedDemo} />
-      ) : activeScreen === "ubid" ? (
-        <UbidRegistry onNavigate={navigate} />
-      ) : activeScreen === "ingestion" ? (
-        <BusinessRegistrationScreen />
-      ) : activeScreen === "resolution" ? (
-        <EntityResolutionScreen />
-      ) : activeScreen === "review" ? (
-        <ReviewQueueScreen />
-      ) : activeScreen === "activity" ? (
-        <ActivityIntelligenceScreen />
-      ) : activeScreen === "queries" ? (
-        <BiQueryEngineScreen />
-      ) : activeScreen === "graph" ? (
-        <IdentityGraphScreen />
-      ) : activeScreen === "map" ? (
-        <PinCodeMapScreen />
-      ) : activeScreen === "audit" ? (
-        <AuditLogsScreen />
+    <AnimatePresence mode="wait">
+      {showIntro ? (
+        <IntroScreen key="intro" onComplete={() => setShowIntro(false)} />
       ) : (
-        <PlaceholderScreen
-          icon={activeDefinition.icon ?? BarChart3}
-          title={activeDefinition.label}
-          description={placeholderCopy[activeScreen]}
-          onNavigate={navigate}
-        />
+        <motion.div
+          key="main-app"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          className="h-full flex flex-col w-full"
+        >
+          <AppShell
+            screens={screens}
+            activeScreen={activeScreen}
+            activeTitle={activeDefinition.label}
+            onNavigate={navigate}
+            guidedDemo={{
+              enabled: isGuidedDemo,
+              currentIndex: guidedStepIndex,
+              total: guidedDemoSteps.length,
+              currentLabel: currentStep.label,
+              canPrevious: guidedStepIndex > 0,
+              canNext: guidedStepIndex < guidedDemoSteps.length - 1,
+              onPrevious: () => moveGuidedDemo(-1),
+              onNext: () => moveGuidedDemo(1),
+              onEnd: endGuidedDemo,
+            }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeScreen}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="h-full w-full flex flex-col overflow-hidden"
+              >
+                {activeScreen === "dashboard" ? (
+                  <ExecutiveDashboardScreen onNavigate={navigate} onStartDemo={startGuidedDemo} />
+                ) : activeScreen === "ubid" ? (
+                  <UbidRegistry onNavigate={navigate} />
+                ) : activeScreen === "ingestion" ? (
+                  <BusinessRegistrationScreen />
+                ) : activeScreen === "resolution" ? (
+                  <EntityResolutionScreen />
+                ) : activeScreen === "review" ? (
+                  <ReviewQueueScreen />
+                ) : activeScreen === "activity" ? (
+                  <ActivityIntelligenceScreen />
+                ) : activeScreen === "queries" ? (
+                  <BiQueryEngineScreen />
+                ) : activeScreen === "graph" ? (
+                  <IdentityGraphScreen />
+                ) : activeScreen === "map" ? (
+                  <PinCodeMapScreen />
+                ) : activeScreen === "audit" ? (
+                  <AuditLogsScreen />
+                ) : (
+                  <PlaceholderScreen
+                    icon={activeDefinition.icon ?? BarChart3}
+                    title={activeDefinition.label}
+                    description={placeholderCopy[activeScreen]}
+                    onNavigate={navigate}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </AppShell>
+        </motion.div>
       )}
-    </AppShell>
+    </AnimatePresence>
   );
 }
 

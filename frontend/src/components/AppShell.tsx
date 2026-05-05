@@ -37,9 +37,9 @@ function AppShell({
     <div className="app">
       <aside className="sidebar">
         <button className="logo" type="button" onClick={() => onNavigate("dashboard")}>
-          <div className="logo-hex">S</div>
+          <img className="logo-mark" src="/setu-logo-mark.svg" alt="SETU" />
           <div>
-            <div className="logo-text">S.E.T.U</div>
+            <div className="logo-text">SETU</div>
             <div className="logo-sub">Karnataka</div>
           </div>
         </button>
