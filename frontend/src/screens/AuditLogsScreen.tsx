@@ -1,4 +1,15 @@
-import { History, ShieldCheck } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  GitMerge,
+  History,
+  RotateCcw,
+  ShieldAlert,
+  ShieldCheck,
+  XCircle,
+  Zap,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { fetchAuditLogs, type AuditLog } from "../lib/api";
 
@@ -39,6 +50,52 @@ function formatAction(action: string) {
   return action.split("_").join(" ");
 }
 
+function formatTimestamp(timestamp: string) {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return timestamp;
+  return date.toLocaleString("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function dateGroupLabel(timestamp: string) {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "Undated";
+  return date.toLocaleDateString("en-IN", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function actionTone(action: string) {
+  if (/deactivated|rollback|reject|closed|conflict/i.test(action)) return "audit-red";
+  if (/auto|approve|link|created|verified/i.test(action)) return "audit-green";
+  if (/review|pending|updated|activity/i.test(action)) return "audit-amber";
+  return "audit-blue";
+}
+
+function actionIcon(action: string): LucideIcon {
+  if (/deactivated|rollback/i.test(action)) return RotateCcw;
+  if (/reject|closed|conflict/i.test(action)) return XCircle;
+  if (/auto|link|merge/i.test(action)) return GitMerge;
+  if (/approve|verified/i.test(action)) return CheckCircle2;
+  if (/review|pending/i.test(action)) return ShieldAlert;
+  return Zap;
+}
+
+function stringifySnapshot(value: unknown) {
+  if (value === undefined || value === null) return "No state snapshot recorded for this demo entry.";
+
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
 function AuditLogsScreen() {
   const [logs, setLogs] = useState<AuditLog[]>(fallbackAuditLogs);
   const [selectedId, setSelectedId] = useState(fallbackAuditLogs[0]._id);
@@ -67,6 +124,18 @@ function AuditLogsScreen() {
     [logs, selectedId],
   );
 
+  const groupedLogs = useMemo(() => {
+    const groups = new Map<string, AuditLog[]>();
+    [...logs]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .forEach((log) => {
+        const group = dateGroupLabel(log.timestamp);
+        groups.set(group, [...(groups.get(group) ?? []), log]);
+      });
+
+    return Array.from(groups.entries()).map(([label, items]) => ({ label, items }));
+  }, [logs]);
+
   return (
     <section className="audit-screen">
       <div className="review-header">
@@ -90,30 +159,44 @@ function AuditLogsScreen() {
         <strong>{isFallback ? "Demo fallback" : "Backend connected"}</strong>
       </div>
 
-      <div className="review-layout">
+      <div className="review-layout audit-layout">
         <aside className="review-case-list">
           <div className="panel-header">
-            <span className="panel-title">Audit Entries</span>
+            <span className="panel-title">Audit Timeline</span>
             <span className="panel-count">{logs.length}</span>
           </div>
           {logs.length ? (
-            logs.map((log) => (
-              <button
-                className={`review-case-item ${log._id === selectedLog?._id ? "selected" : ""}`}
-                key={log._id}
-                type="button"
-                onClick={() => setSelectedId(log._id)}
-              >
-                <div className="ri-top">
-                  <span className="ri-name">{formatAction(log.action)}</span>
-                  <span className="status-pill sp-review">{log.actor}</span>
+            <div className="audit-timeline">
+              {groupedLogs.map((group) => (
+                <div className="audit-date-group" key={group.label}>
+                  <div className="audit-date-label">
+                    <CalendarDays size={13} aria-hidden="true" />
+                    {group.label}
+                  </div>
+                  {group.items.map((log) => {
+                    const Icon = actionIcon(log.action);
+
+                    return (
+                      <button
+                        className={`audit-entry ${actionTone(log.action)} ${log._id === selectedLog?._id ? "selected" : ""}`}
+                        key={log._id}
+                        type="button"
+                        onClick={() => setSelectedId(log._id)}
+                      >
+                        <span className="audit-dot">
+                          <Icon size={13} aria-hidden="true" />
+                        </span>
+                        <span className="audit-entry-main">
+                          <span className="audit-entry-title">{formatAction(log.action)}</span>
+                          <span className="audit-entry-reason">{log.reason}</span>
+                          <span className="audit-entry-meta">{formatTimestamp(log.timestamp)} / {log.actor}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <p>{log.reason}</p>
-                <div className="ri-meta">
-                  <span className="conf-label">{log.timestamp}</span>
-                </div>
-              </button>
-            ))
+              ))}
+            </div>
           ) : (
             <div className="empty-state">No audit entries available</div>
           )}
@@ -155,6 +238,25 @@ function AuditLogsScreen() {
                   <span>Match candidate</span>
                   <strong>{selectedLog.match_candidate_id ?? "Not linked"}</strong>
                 </div>
+                <div className="evidence-row">
+                  <span>Target</span>
+                  <strong>{selectedLog.target ?? "Not linked"}</strong>
+                </div>
+                <div className="evidence-row">
+                  <span>Generated by</span>
+                  <strong>{selectedLog.generated_by ?? "SETU prototype"}</strong>
+                </div>
+              </div>
+
+              <div className="audit-record-panels">
+                <details open>
+                  <summary>After state</summary>
+                  <pre className="audit-json">{stringifySnapshot(selectedLog.after)}</pre>
+                </details>
+                <details>
+                  <summary>Before state</summary>
+                  <pre className="audit-json">{stringifySnapshot(selectedLog.before)}</pre>
+                </details>
               </div>
             </>
           ) : (

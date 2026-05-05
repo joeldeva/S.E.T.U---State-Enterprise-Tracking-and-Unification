@@ -1,5 +1,6 @@
 import { CheckCircle2, FilePlus2, RefreshCw, ShieldAlert, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import ConfidenceSignalBar, { buildNormalizedSignals, type ConfidenceSignal } from "../components/ConfidenceSignalBar";
 import {
   fetchAuditLogs,
   fetchMatchCandidates,
@@ -191,6 +192,69 @@ function confidenceColor(confidence: number) {
   if (confidence >= 85) return "#047857";
   if (confidence >= 65) return "#B45309";
   return "#B91C1C";
+}
+
+function clamp(value: number, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function evidenceValueRatio(value: unknown) {
+  if (typeof value === "boolean") return value ? 1 : 0;
+  if (typeof value === "number") return value > 1 ? clamp(value / 100) : clamp(value);
+
+  if (typeof value === "object" && value !== null) {
+    const item = value as { matched?: boolean; points?: number; score?: number; value?: unknown };
+    if (typeof item.matched === "boolean") return item.matched ? 1 : 0;
+    if (typeof item.score === "number") return item.score > 1 ? clamp(item.score / 100) : clamp(item.score);
+    if (typeof item.value === "number") return item.value > 1 ? clamp(item.value / 100) : clamp(item.value);
+    if (typeof item.value === "boolean") return item.value ? 1 : 0;
+    if (typeof item.points === "number") return clamp(item.points / 25);
+  }
+
+  return 0;
+}
+
+function evidenceRatio(evidence: Record<string, unknown> | undefined, keys: string[]) {
+  if (!evidence) return 0;
+
+  return Object.entries(evidence).reduce((best, [key, value]) => {
+    const normalizedKey = key.toLowerCase();
+    const matches = keys.some((candidate) => normalizedKey.includes(candidate));
+    return matches ? Math.max(best, evidenceValueRatio(value)) : best;
+  }, 0);
+}
+
+function hasEvidence(evidence: Record<string, unknown> | undefined, keys: string[]) {
+  if (!evidence) return false;
+  return Object.keys(evidence).some((key) => {
+    const normalizedKey = key.toLowerCase();
+    return keys.some((candidate) => normalizedKey.includes(candidate));
+  });
+}
+
+function buildCandidateSignals(candidate: MatchCandidate): ConfidenceSignal[] {
+  const evidence = candidate.evidence;
+  const departmentEvidence = candidate.departments?.some((department) =>
+    /shops|factory|factories|kspcb|bescom|bwssb|labour|local/i.test(department),
+  )
+    ? 0.62
+    : 0;
+  const licenceEvidence = Math.max(
+    evidenceRatio(evidence, ["licence", "license", "consumer", "local_identifier", "department_record"]),
+    hasEvidence(evidence, ["registration_anchor_missing"]) ? 0.72 : departmentEvidence,
+  );
+  const identifierEvidence = evidenceRatio(evidence, ["identifier", "gstin", "pan"]);
+
+  return buildNormalizedSignals(
+    [
+      { label: "Name", maxPoints: 22, ratio: evidenceRatio(evidence, ["name_similarity", "name"]), color: "#2563eb" },
+      { label: "Address", maxPoints: 18, ratio: evidenceRatio(evidence, ["address_similarity", "address"]), color: "#0f766e" },
+      { label: "Licence", maxPoints: 25, ratio: licenceEvidence, color: "#7c3aed" },
+      { label: "PIN", maxPoints: 10, ratio: evidenceRatio(evidence, ["same_pin", "pin"]), color: "#b45309" },
+      { label: "GSTIN/PAN", maxPoints: 25, ratio: identifierEvidence, color: "#b91c1c" },
+    ],
+    candidate.confidence,
+  );
 }
 
 function evidenceRows(evidence: Record<string, unknown> | undefined) {
@@ -389,31 +453,36 @@ function ReviewQueueScreen() {
             <span className="panel-count">{cases.length}</span>
           </div>
           {cases.length ? (
-            cases.map((item) => (
-              <button
-                className={`review-case-item ${item._id === selectedCase?._id ? "selected" : ""}`}
-                key={item._id}
-                type="button"
-                onClick={() => setSelectedCaseId(item._id)}
-              >
-                <div className="ri-top">
-                  <span className="ri-name">{item._id}</span>
-                  <span className={`status-pill ${item.priority === "High" ? "sp-review" : "sp-dormant"}`}>
-                    {item.priority}
-                  </span>
-                </div>
-                <p>{item.reason}</p>
-                <div className="ri-meta">
-                  <div className="conf-bar-mini">
-                    <div
-                      className="conf-fill-mini"
-                      style={{ width: `${item.confidence}%`, background: confidenceColor(item.confidence) }}
-                    />
+            cases.map((item) => {
+              const itemCandidate = candidates.find((candidate) => candidate._id === item.match_candidate_id);
+
+              return (
+                <button
+                  className={`review-case-item review-case-card ${item._id === selectedCase?._id ? "selected" : ""}`}
+                  key={item._id}
+                  type="button"
+                  onClick={() => setSelectedCaseId(item._id)}
+                >
+                  <div className="ri-top">
+                    <span className="ri-name">{item._id}</span>
+                    <span className={`status-pill ${item.priority === "High" ? "sp-review" : "sp-dormant"}`}>
+                      {item.priority}
+                    </span>
                   </div>
-                  <span className="conf-label">{item.confidence}%</span>
-                </div>
-              </button>
-            ))
+                  {itemCandidate ? (
+                    <div className="case-record-pair">
+                      <span>{itemCandidate.record_a}</span>
+                      <span>{itemCandidate.record_b}</span>
+                    </div>
+                  ) : null}
+                  <p>{item.reason}</p>
+                  <div className="case-card-footer">
+                    <span>Review score</span>
+                    <strong style={{ color: confidenceColor(item.confidence) }}>{item.confidence}/100</strong>
+                  </div>
+                </button>
+              );
+            })
           ) : (
             <div className="empty-state">No pending review cases</div>
           )}
@@ -430,18 +499,14 @@ function ReviewQueueScreen() {
                 </div>
                 <div className="candidate-score">
                   <span className="status-pill sp-review">Review</span>
-                  <div className="conf-bar-wide">
-                    <div
-                      className="conf-fill-mini"
-                      style={{
-                        width: `${selectedCandidate.confidence}%`,
-                        background: confidenceColor(selectedCandidate.confidence),
-                      }}
-                    />
-                  </div>
                   <span className="conf-label">{selectedCandidate.confidence}%</span>
                 </div>
               </div>
+
+              <ConfidenceSignalBar
+                score={selectedCandidate.confidence}
+                signals={buildCandidateSignals(selectedCandidate)}
+              />
 
               <div className="comparison-grid">
                 <RecordComparison title="Record A" record={recordA} />
@@ -459,7 +524,13 @@ function ReviewQueueScreen() {
               </div>
 
               <div className="decision-panel">
-                <label htmlFor="reviewReason">Reviewer reason</label>
+                <div className="decision-panel-header">
+                  <div>
+                    <div className="section-title">Decision actions</div>
+                    <label htmlFor="reviewReason">Reviewer reason</label>
+                  </div>
+                  <span className="status-pill sp-review">Audit required</span>
+                </div>
                 <textarea
                   id="reviewReason"
                   value={reason}

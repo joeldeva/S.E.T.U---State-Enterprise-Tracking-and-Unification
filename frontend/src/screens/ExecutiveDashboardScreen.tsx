@@ -77,6 +77,10 @@ const moduleShortcuts = [
 
 function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboardScreenProps) {
   const featuredBusiness = seedBusinesses[0];
+  const reviewMetric = metrics.find((metric) => metric.label === "Pending verification") ?? metrics[2];
+  const registryMetric = metrics.find((metric) => metric.label === "UBIDs generated") ?? metrics[1];
+  const primaryMetric = Number(reviewMetric.value) > 0 ? reviewMetric : registryMetric;
+  const secondaryMetrics = metrics.filter((metric) => metric.label !== primaryMetric.label);
 
   return (
     <section className="dashboard-screen">
@@ -108,13 +112,23 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
         ))}
       </div>
 
-      <div className="dashboard-metrics">
-        {metrics.map((metric) => (
-          <article className={`dashboard-metric metric-${metric.tone}`} key={metric.label}>
-            <span>{metric.label}</span>
-            <strong>{metric.value}</strong>
-          </article>
-        ))}
+      <div className="dashboard-metrics dashboard-kpi-layout">
+        <article className={`dashboard-metric metric-primary metric-${primaryMetric.tone}`}>
+          <span>Primary attention</span>
+          <strong>{primaryMetric.value}</strong>
+          <em>{primaryMetric.label}</em>
+          <p>
+            Non-zero review load is surfaced first so officers act before additional automated links are accepted.
+          </p>
+        </article>
+        <div className="dashboard-secondary-metrics">
+          {secondaryMetrics.map((metric) => (
+            <article className={`dashboard-metric metric-${metric.tone}`} key={metric.label}>
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="dashboard-grid">

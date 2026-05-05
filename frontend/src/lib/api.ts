@@ -252,8 +252,12 @@ export interface AuditLog {
   actor: string;
   case_id?: string;
   match_candidate_id?: string;
+  target?: string;
   reason: string;
   timestamp: string;
+  before?: unknown;
+  after?: unknown;
+  generated_by?: string;
 }
 
 export interface BusinessSubmissionPayload {

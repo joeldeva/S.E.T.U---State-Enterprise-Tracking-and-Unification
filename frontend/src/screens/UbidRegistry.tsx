@@ -1,5 +1,6 @@
 import { ExternalLink, GitFork, History, ShieldCheck } from "lucide-react";
 import { useMemo, useState } from "react";
+import ConfidenceSignalBar, { buildNormalizedSignals, type ConfidenceSignal } from "../components/ConfidenceSignalBar";
 import { seedBusinesses } from "../data/seedBusinesses";
 import { deactivateUbidLink } from "../lib/api";
 import type { BusinessRecord, BusinessStatus, DepartmentSource, ScreenId } from "../types";
@@ -19,6 +20,36 @@ function confidenceColor(confidence: number) {
   if (confidence >= 85) return "#047857";
   if (confidence >= 65) return "#B45309";
   return "#B91C1C";
+}
+
+function explainFactorScore(business: BusinessRecord, labels: string[]) {
+  const factor = business.explain.find((item) => {
+    const normalized = item.factor.toLowerCase();
+    return labels.some((label) => normalized.includes(label));
+  });
+
+  return factor?.score ?? 0;
+}
+
+function buildBusinessSignals(business: BusinessRecord): ConfidenceSignal[] {
+  const linked = business.sources.filter((source) => source.status === "linked").length;
+  const partial = business.sources.filter((source) => source.status === "partial").length;
+  const sourceCoverage = business.sources.length ? (linked + partial * 0.45) / business.sources.length : 0;
+  const identifierScore = Math.max(
+    explainFactorScore(business, ["identifier", "hash"]),
+    explainFactorScore(business, ["pan"]),
+  );
+
+  return buildNormalizedSignals(
+    [
+      { label: "Name", maxPoints: 22, ratio: explainFactorScore(business, ["name similarity"]) / 100, color: "#2563eb" },
+      { label: "Address", maxPoints: 18, ratio: explainFactorScore(business, ["address"]) / 100, color: "#0f766e" },
+      { label: "Licence", maxPoints: 25, ratio: sourceCoverage, color: "#7c3aed" },
+      { label: "PIN", maxPoints: 10, ratio: business.pinCode ? 1 : 0, color: "#b45309" },
+      { label: "GSTIN/PAN", maxPoints: 25, ratio: business.anchorType === "Synthetic" ? 0 : identifierScore / 100, color: "#b91c1c" },
+    ],
+    business.confidence,
+  );
 }
 
 function displayHash(hash: string) {
@@ -292,23 +323,7 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
           <div>
             <div className="section-title">Match explainability - why {business.confidence}% confidence?</div>
             <div className="explain-box">
-              {business.explain.map((factor) => (
-                <div className="explain-row" key={`${business.ubid}-${factor.factor}`}>
-                  <div className="explain-factor">{factor.factor}</div>
-                  <div className="explain-bar">
-                    <div
-                      className="explain-fill"
-                      style={{
-                        width: `${factor.score}%`,
-                        background: factor.color,
-                      }}
-                    />
-                  </div>
-                  <div className="explain-score" style={{ color: factor.color }}>
-                    {factor.score}%
-                  </div>
-                </div>
-              ))}
+              <ConfidenceSignalBar score={business.confidence} signals={buildBusinessSignals(business)} />
             </div>
           </div>
 
