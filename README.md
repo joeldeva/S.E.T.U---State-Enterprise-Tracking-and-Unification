@@ -1,14 +1,16 @@
 # SETU / K-BIG - State Enterprise Tracking and Unification
 
+## Live Prototype
+
+Open the deployed prototype here:
+
+**https://s-e-t-u-state-enterprise-tracking-a-mu.vercel.app/**
+
+Use this link for judging, review, and demo walkthroughs.
+
 SETU, also called **K-BIG - Karnataka Business Intelligence Grid**, is a working prototype for the Karnataka Government problem statement on creating a Unified Business Identifier (UBID) and business activity intelligence layer.
 
 The prototype links fragmented synthetic department records into one explainable business identity, classifies businesses as Active, Dormant, Closed, or Unknown/Insufficient Data, and gives officers review, audit, rollback, graph, map, and BI query views.
-
-Live demo:
-
-```text
-https://s-e-t-u-state-enterprise-tracking-a-mu.vercel.app/
-```
 
 ## Why This Exists
 
