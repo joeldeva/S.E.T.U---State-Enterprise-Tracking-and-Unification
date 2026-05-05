@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface IntroScreenProps {
   onComplete: () => void;
@@ -7,79 +7,159 @@ interface IntroScreenProps {
 
 export default function IntroScreen({ onComplete }: IntroScreenProps) {
   const [stage, setStage] = useState<"enter" | "exit">("enter");
+  const [showButton, setShowButton] = useState(false);
+
+  // Pre-computed stable particles (avoid random on every render)
+  const particles = useMemo(() =>
+    Array.from({ length: 60 }, (_, i) => ({
+      id: i,
+      left: `${((i * 1637 + 311) % 10000) / 100}%`,
+      top: `${((i * 2741 + 173) % 10000) / 100}%`,
+      delay: `${((i * 0.17) % 5).toFixed(2)}s`,
+      duration: `${(3 + (i % 6)).toFixed(1)}s`,
+      size: (i % 3) + 1,
+      opacity: 0.2 + (i % 5) * 0.1,
+    })),
+  []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setStage("exit");
-    }, 2500); // Wait 2.5s before exiting
-
-    return () => clearTimeout(timer);
+    const t1 = setTimeout(() => setShowButton(true), 2600);
+    const t2 = setTimeout(() => setStage("exit"), 5500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0a0f1c] overflow-hidden"
+      className="intro-root"
       initial={{ opacity: 0 }}
       animate={{ opacity: stage === "enter" ? 1 : 0 }}
-      transition={{ duration: 0.8, ease: "easeInOut" }}
+      transition={{ duration: stage === "enter" ? 1.0 : 1.2, ease: "easeInOut" }}
       onAnimationComplete={() => {
-        if (stage === "exit") {
-          onComplete();
-        }
+        if (stage === "exit") onComplete();
       }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(29,78,216,0.22),transparent_48%),linear-gradient(135deg,#07101f_0%,#10182c_52%,#061225_100%)]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] h-[760px] bg-[#f59e0b]/10 rounded-full blur-[120px] pointer-events-none" />
+      {/* Animated perspective grid */}
+      <div className="intro-grid" aria-hidden="true" />
 
-      <div className="flex flex-col md:flex-row items-center gap-12 md:gap-24 relative z-10">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col items-center"
-        >
-          <img
-            src="/karnataka-emblem.png"
-            alt="Government of Karnataka"
-            className="w-40 h-40 md:w-56 md:h-56 object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.45)]"
+      {/* Radial light bloom */}
+      <div className="intro-bloom" aria-hidden="true" />
+      <div className="intro-bloom intro-bloom-2" aria-hidden="true" />
+
+      {/* Star particles */}
+      <div className="intro-particles" aria-hidden="true">
+        {particles.map((p) => (
+          <span
+            key={p.id}
+            className="intro-particle"
+            style={{
+              left: p.left,
+              top: p.top,
+              animationDelay: p.delay,
+              animationDuration: p.duration,
+              width: `${p.size}px`,
+              height: `${p.size}px`,
+              opacity: p.opacity,
+            }}
           />
-          <h2 className="mt-6 text-white text-xl md:text-2xl font-bold tracking-wider uppercase drop-shadow-md text-center leading-tight">
-            Government of<br/>Karnataka
-          </h2>
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div className="intro-stage">
+        {/* Karnataka Govt block */}
+        <motion.div
+          className="intro-logo-block"
+          initial={{ opacity: 0, scale: 0.72, y: 32 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="intro-glow-halo intro-halo-amber" />
+          <div className="intro-logo-frame">
+            <img
+              src="/karnataka-emblem.png"
+              alt="Government of Karnataka"
+              className="intro-emblem"
+            />
+          </div>
+          <motion.div
+            className="intro-caption"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.35, duration: 0.8 }}
+          >
+            <span className="intro-caption-top">Government of</span>
+            <strong className="intro-caption-name">Karnataka</strong>
+          </motion.div>
         </motion.div>
 
+        {/* Animated divider */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 1 }}
-          className="hidden md:block w-[2px] h-40 bg-gradient-to-b from-transparent via-white/40 to-transparent"
-        />
-
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col items-center"
+          className="intro-sep"
+          initial={{ scaleY: 0, opacity: 0 }}
+          animate={{ scaleY: 1, opacity: 1 }}
+          transition={{ delay: 1.05, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         >
-          <img
-            src="/setu-logo-intro.svg"
-            alt="SETU Logo"
-            className="w-48 h-40 md:w-72 md:h-56 object-contain drop-shadow-[0_22px_50px_rgba(59,130,246,0.36)]"
-          />
-          <h2 className="mt-6 text-[#8bbcff] text-xl md:text-2xl font-bold tracking-widest uppercase drop-shadow-md text-center">
-            S.E.T.U
-          </h2>
+          <span className="intro-sep-dot" />
+          <span className="intro-sep-line" />
+          <span className="intro-sep-dot" />
+        </motion.div>
+
+        {/* SETU block */}
+        <motion.div
+          className="intro-logo-block"
+          initial={{ opacity: 0, scale: 0.72, y: 32 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.75, duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="intro-glow-halo intro-halo-blue" />
+          <div className="intro-logo-frame intro-logo-frame-setu">
+            <img
+              src="/setu-logo.png"
+              alt="SETU"
+              className="intro-setu"
+            />
+          </div>
+          <motion.div
+            className="intro-caption"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.6, duration: 0.8 }}
+          >
+            <strong className="intro-caption-name intro-setu-label">S · E · T · U</strong>
+            <span className="intro-caption-sub">State Enterprise Tracking &amp; Unification</span>
+          </motion.div>
         </motion.div>
       </div>
 
+      {/* CTA button */}
       <motion.div
+        className="intro-cta"
+        initial={{ opacity: 0, y: 22 }}
+        animate={{ opacity: showButton ? 1 : 0, y: showButton ? 0 : 22 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+      >
+        <button
+          type="button"
+          className="intro-enter-btn"
+          onClick={() => setStage("exit")}
+        >
+          <span>Enter Platform</span>
+          <span className="intro-arrow" aria-hidden="true">→</span>
+        </button>
+      </motion.div>
+
+      {/* Bottom tagline */}
+      <motion.p
+        className="intro-tagline"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute bottom-12 text-slate-400 text-sm tracking-[0.2em] uppercase"
+        transition={{ delay: 2.2, duration: 1.4 }}
       >
-        State Enterprise Tracking and Unification
-      </motion.div>
+        Unified Business Intelligence · Government of Karnataka
+      </motion.p>
     </motion.div>
   );
 }
