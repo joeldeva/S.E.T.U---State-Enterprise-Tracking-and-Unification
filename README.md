@@ -1,4 +1,4 @@
-# SETU / K-BIG - State Enterprise Tracking and Unification
+# SETU - State Enterprise Tracking and Unification
 
 ## Live Prototype
 
