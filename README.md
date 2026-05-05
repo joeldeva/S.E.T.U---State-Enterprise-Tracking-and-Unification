@@ -12,6 +12,48 @@ SETU, also called **K-BIG - Karnataka Business Intelligence Grid**, is a working
 
 The prototype links fragmented synthetic department records into one explainable business identity, classifies businesses as Active, Dormant, Closed, or Unknown/Insufficient Data, and gives officers review, audit, rollback, graph, map, and BI query views.
 
+## Prototype Screenshots
+
+### Executive Dashboard
+
+<img src="docs/screenshots/01_dashboard_clean_annotated.jpg" alt="SETU Executive Dashboard showing UBID counts, review load, activity mix, and reviewer feedback learning" width="100%">
+
+### Data Ingestion / Business Registration
+
+<img src="docs/screenshots/02_data_ingestion_overview_clean_annotated.jpg" alt="Data Ingestion screen showing mock database checks, PAN/GSTIN optional validation, and business submission fields" width="100%">
+
+### Business Submission Form
+
+<img src="docs/screenshots/03_submission_form_clean_annotated.jpg" alt="Business Submission Form showing address, PIN, department identifiers, and generate UBID action" width="100%">
+
+### Generated UBID Result
+
+<img src="docs/screenshots/04_generated_ubid_result_clean_annotated.jpg" alt="Generated UBID result showing masked identifiers, confidence, validation checks, and matched records" width="100%">
+
+### Mock CSV Spreadsheet
+
+<img src="docs/screenshots/10_mock_csv_database_clean_annotated.jpg" alt="Mock CSV Spreadsheet showing synthetic department records in an Excel-style viewer" width="100%">
+
+### BI Query Engine
+
+<img src="docs/screenshots/05_bi_query_engine_clean_annotated.jpg" alt="BI Query Engine showing prebuilt government intelligence queries and evidence results" width="100%">
+
+### Identity Graph
+
+<img src="docs/screenshots/06_identity_graph_clean_annotated.jpg" alt="Identity Graph showing one UBID connected to department records and activity evidence" width="100%">
+
+### PIN-code Map
+
+<img src="docs/screenshots/07_pincode_map_clean_annotated.jpg" alt="PIN-code Map showing Karnataka area-level business intelligence and inspection gaps" width="100%">
+
+### Review Queue
+
+<img src="docs/screenshots/08_review_queue_clean_annotated.jpg" alt="Review Queue showing confidence thresholds, signal breakdown, and reviewer decision workflow" width="100%">
+
+### Audit Logs
+
+<img src="docs/screenshots/09_audit_logs_clean_annotated.jpg" alt="Audit Logs showing append-only decision timeline and reversible governance metadata" width="100%">
+
 ## Why This Exists
 
 Karnataka business records are spread across department systems such as Shops and Establishments, Factories, Labour, KSPCB, BESCOM, BWSSB, Fire, and local bodies. Each system can store different spellings, addresses, licence numbers, owner/contact fields, and activity signals for the same operating establishment.
@@ -51,140 +93,29 @@ Research alignment: the official e-Karmika Shops and Commercial Establishments S
 9. Activity events classify the business as Active, Dormant, Closed, or Unknown/Insufficient Data.
 10. Important automated and reviewer actions are stored in Audit Logs.
 
-## Core Features
+## Feature Coverage
 
-### 1. Business Data Ingestion
-
-The Data Ingestion screen accepts:
-
-- Business name, address, district, and PIN code
-- PAN/GSTIN when available
-- Factory licence number
-- Shop licence number
-- Labour registration number
-- KSPCB consent number
-- BESCOM/BWSSB consumer number
-- Trade licence number
-- Owner/contact details
-
-After submission, SETU validates inputs, checks synthetic department records, and displays a full UBID result page with masked identifiers and matched department evidence.
-
-### 2. Mock CSV Spreadsheet Viewer
-
-The Data Ingestion screen includes a link to inspect the synthetic mock database in an Excel-like view. The viewer supports search, horizontal scrolling, sticky record columns, quick jumps to date/licence fields, and masked CSV download.
-
-### 3. Internal Normalization
-
-The backend normalizes messy department values before matching.
-
-Examples:
-
-- `Pvt` -> `Private`
-- `Ltd` -> `Limited`
-- `Engg` -> `Engineering`
-- `Bangalore` -> `Bengaluru`
-- `III Cross` -> `3rd Cross`
-- `Peenya Indl Area` -> `Peenya Industrial Area`
-- `Shree / Shri / Sri` -> `Sri`
-
-PAN and GSTIN are validated, masked, and hashed for application outputs. Do not use real PAN/GSTIN in this prototype.
-
-### 4. Explainable Matching
-
-SETU uses multiple evidence signals:
-
-| Evidence | Purpose |
+| Area | What the prototype demonstrates |
 | --- | --- |
-| PAN/GSTIN match | Strong legal/tax anchor when available |
-| Licence number match | Strong department anchor |
-| Consumer number match | Utility-based activity or identity evidence |
-| Business name similarity | Fuzzy identity support |
-| Address similarity | Location support |
-| PIN/district match | Geographic evidence |
-| Owner/contact match | Additional confidence |
-| Conflict detection | Prevents unsafe merges |
+| Business ingestion | Business profile, address/PIN, optional PAN/GSTIN, licence references, utility consumer numbers, owner/contact fields, validation, and UBID generation |
+| Mock CSV spreadsheet | Searchable Excel-style view of synthetic department records with masked identifiers and right-side columns for dates/licences |
+| Normalization | Local cleanup for business names, address variants, PIN/district fields, and masked/hashed identifiers |
+| Explainable matching | Signal breakdown for name, address, licence, PIN, PAN/GSTIN, and conflict penalties |
+| Review governance | Medium-confidence and conflicting matches go to a case-management review queue |
+| UBID registry | Legal entity anchor, establishment UBID, linked department records, confidence explanation, and deactivate-link concept |
+| Activity intelligence | Active/Dormant/Closed/Unknown status using renewal, filing, inspection, utility, consent, closure, and cancellation events |
+| BI query engine | Prebuilt cross-department questions such as active factories in PIN 560058 with no recent inspection |
+| Identity graph | UBID-centered graph of department records, review candidates, rejected links, and activity events |
+| PIN-code map | Karnataka area-level intelligence for activity clusters, inspection gaps, and coverage gaps |
+| Audit logs | Timeline of automated and reviewer decisions with actor, reason, timestamp, before/after state, and reversible governance metadata |
 
-Decision thresholds:
-
-| Confidence | Decision |
-| --- | --- |
-| 90-100 | Auto-link |
-| 65-89 | Human Review |
-| Below 65 | Provisional UBID / more evidence needed |
-
-The confidence score is shown as a visual signal breakdown rather than only a number.
-
-### 5. Human Review Queue
-
-Ambiguous cases are not silently merged. A reviewer can:
-
-- Approve a merge
-- Reject a match
-- Create a new UBID
-- Attach to an existing UBID
-- Mark insufficient data
-- Request more evidence
-
-Reviewer actions create audit entries and contribute to the simulated feedback-learning summary.
-
-### 6. UBID Registry
-
-Each business gets a UBID such as:
+Each UBID follows this format:
 
 ```text
 KA-UBID-XXXXXXXXXXXX
 ```
 
-The UBID profile shows:
-
-- Business name and UBID
-- Legal entity anchor status, when PAN/GSTIN evidence exists
-- Establishment / operating unit identity
-- Linked department records
-- Match confidence and evidence explanation
-- Activity status and compliance risk context
-- Open/deactivate source-link actions
-- Audit history and identity graph navigation
-
-### 7. Activity Intelligence
-
-SETU uses activity events to classify businesses.
-
-Activity signals include:
-
-- Licence renewal
-- Compliance filing
-- Inspection
-- Electricity usage
-- Water usage
-- Pollution consent
-- Closure application
-- Licence cancellation
-- Low or stale activity
-
-The system separates operational status from compliance risk. For example, a business can look Active because utility usage exists, but still be High Risk if licence or inspection evidence is stale.
-
-### 8. BI Query Engine
-
-The query engine helps officers ask structured intelligence questions such as:
-
-```text
-Active factories in PIN code 560058 with no inspection in the last 18 months.
-```
-
-Other demo query types include:
-
-- Dormant businesses with active pollution consent
-- Businesses with utility usage but expired licence
-- Businesses active in one department but missing from another
-- High-confidence duplicate clusters
-- Unmatched activity events
-
-### 9. Identity Graph, PIN-code Map, and Audit Logs
-
-- **Identity Graph:** Shows how department records connect to one UBID.
-- **PIN-code Map:** Shows aggregate area-level activity, review pressure, and high-risk inspection gaps.
-- **Audit Logs:** Tracks submissions, matches, review decisions, link deactivation, and activity status updates.
+PAN and GSTIN are validated, masked, and hashed for application outputs. Do not use real PAN/GSTIN in this prototype.
 
 ## Prototype Dataset
 
@@ -267,6 +198,7 @@ docs/
   DEMO_GUIDE.md           # Judge/demo walkthrough and checks
   DEPLOYMENT_SPEC.md      # Vercel deployment notes
   PROTOTYPE_NOTES.md      # Governance and prototype notes
+  screenshots/            # Annotated prototype screenshots used in this README
 frontend/
   public/                 # Logos and frontend static assets
   raw-html-prototype/     # Preserved original HTML prototype
