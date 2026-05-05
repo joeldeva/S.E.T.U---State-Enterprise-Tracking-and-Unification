@@ -480,6 +480,10 @@ export function runActiveFactoriesNoInspectionQuery(): Promise<ActiveFactoriesQu
   return apiFetch<ActiveFactoriesQueryResponse>("/api/queries/active-factories-no-inspection");
 }
 
+export function runPrebuiltQuery(queryId: string): Promise<ActiveFactoriesQueryResponse> {
+  return apiFetch<ActiveFactoriesQueryResponse>(`/api/queries/${encodeURIComponent(queryId)}`);
+}
+
 export function fetchPinCodeSummary(): Promise<PinCodeSummary[]> {
   return apiFetch<PinCodeSummary[]>("/api/map/pincode-summary");
 }

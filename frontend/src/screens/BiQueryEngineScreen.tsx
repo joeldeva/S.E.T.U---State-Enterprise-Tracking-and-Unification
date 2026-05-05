@@ -2,7 +2,7 @@ import { ChevronDown, FileSearch, Play, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   fetchPrebuiltQueries,
-  runActiveFactoriesNoInspectionQuery,
+  runPrebuiltQuery,
   type ActiveFactoriesQueryResponse,
   type PrebuiltQuery,
   type QueryResultRow,
@@ -100,12 +100,13 @@ function BiQueryEngineScreen() {
       });
   }, []);
 
-  async function handleRunQuery() {
+  async function handleRunQuery(queryId = selectedQuery) {
+    setSelectedQuery(queryId);
     setIsRunning(true);
     setStatusText("Running government intelligence query...");
 
     try {
-      const result = await runActiveFactoriesNoInspectionQuery();
+      const result = await runPrebuiltQuery(queryId);
       setQueryResponse(result);
       setExpandedUbid(result.results[0]?.ubid ?? null);
       setStatusText(`${result.result_count} result${result.result_count === 1 ? "" : "s"} returned from backend`);
@@ -153,7 +154,7 @@ function BiQueryEngineScreen() {
             className={`query-card ${query.id === selectedQuery ? "selected" : ""}`}
             key={query.id}
             type="button"
-            onClick={() => setSelectedQuery(query.id)}
+            onClick={() => void handleRunQuery(query.id)}
           >
             <span>{query.risk_focus}</span>
             <strong>{query.title}</strong>
@@ -173,7 +174,7 @@ function BiQueryEngineScreen() {
             <span>Business</span>
             <span>PIN</span>
             <span>Status</span>
-            <span>Last Inspection</span>
+            <span>Finding</span>
             <span>Risk</span>
           </div>
           {queryResponse.results.map((row) => (
