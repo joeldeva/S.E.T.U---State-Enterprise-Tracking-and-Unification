@@ -6,6 +6,7 @@ export type ScreenId =
   | "dashboard"
   | "ubid"
   | "ingestion"
+  | "spreadsheet"
   | "normalization"
   | "resolution"
   | "review"

@@ -7,7 +7,6 @@ import {
   Fingerprint,
   MapPinned,
   Send,
-  ShieldCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { seedBusinesses } from "../data/seedBusinesses";
@@ -27,28 +26,6 @@ const metrics = [
   { label: "Dormant businesses", value: "22", tone: "amber" },
   { label: "Closed businesses", value: "9", tone: "red" },
   { label: "Unmatched Events", value: "2", tone: "red" },
-];
-
-const impactItems = [
-  "One UBID across departments",
-  "Active/Dormant/Closed status with evidence",
-  "Ambiguous matches routed to officers",
-  "Queries previously impossible are now possible",
-  "Works without modifying department systems",
-];
-
-const dashboardCompliance = [
-  "Synthetic Data",
-  "Read-Only Source Integration",
-  "Explainable Decisions",
-  "Human Review",
-  "Reversible Merge",
-];
-
-const priorityCases = [
-  { caseId: "CASE-001", title: "Name/address match, GSTIN missing", confidence: 82, priority: "High" },
-  { caseId: "CASE-002", title: "Same PIN, similar owner, partial address", confidence: 76, priority: "Medium" },
-  { caseId: "CASE-003", title: "Utility event unmatched to registry", confidence: 68, priority: "Low" },
 ];
 
 const reviewerLearning = {
@@ -103,15 +80,6 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
         </div>
       </div>
 
-      <div className="dashboard-compliance" aria-label="Prototype compliance controls">
-        {dashboardCompliance.map((item) => (
-          <span key={item}>
-            <ShieldCheck size={13} aria-hidden="true" />
-            {item}
-          </span>
-        ))}
-      </div>
-
       <div className="dashboard-metrics dashboard-kpi-layout">
         <article className={`dashboard-metric metric-primary metric-${primaryMetric.tone}`}>
           <span>Primary attention</span>
@@ -132,20 +100,6 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
       </div>
 
       <div className="dashboard-grid">
-        <article className="dashboard-panel impact-panel">
-          <div className="panel-header compact">
-            <span className="panel-title">Impact Summary</span>
-          </div>
-          <div className="impact-list">
-            {impactItems.map((item) => (
-              <div className="impact-item" key={item}>
-                <ShieldCheck size={15} aria-hidden="true" />
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-
         <article className="dashboard-panel status-panel">
           <div className="panel-header compact">
             <span className="panel-title">Activity Status Mix</span>
@@ -179,31 +133,6 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
               Confidence {featuredBusiness.confidence}% from identifier hash match, name similarity, same PIN evidence,
               and linked synthetic activity events.
             </p>
-          </div>
-        </article>
-
-        <article className="dashboard-panel priority-panel">
-          <div className="panel-header compact">
-            <span className="panel-title">Pending Review Priority</span>
-            <button className="panel-link" type="button" onClick={() => onNavigate("review")}>
-              Review Queue
-            </button>
-          </div>
-          <div className="priority-list">
-            {priorityCases.map((item) => (
-              <div className="priority-case" key={item.caseId}>
-                <div>
-                  <strong>{item.caseId}</strong>
-                  <span>{item.title}</span>
-                </div>
-                <div>
-                  <span className="conf-label">{item.confidence}%</span>
-                  <span className={`status-pill ${item.priority === "High" ? "sp-closed" : "sp-review"}`}>
-                    {item.priority}
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
         </article>
 

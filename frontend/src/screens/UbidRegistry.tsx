@@ -230,6 +230,19 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
           </div>
         </div>
 
+        <SourceLinksPanel
+          business={business}
+          linked={linked}
+          partial={partial}
+          missing={missing}
+          deactivatedLinks={deactivatedLinks}
+          linkKey={linkKey}
+          onNavigate={onNavigate}
+          onDeactivate={setPendingDeactivate}
+        />
+
+        {linkActionStatus ? <div className="review-refresh-note">{linkActionStatus}</div> : null}
+
         <div className="identity-distinction-grid">
           <section className="identity-section">
             <div className="section-title">Legal Entity Anchor</div>
@@ -253,71 +266,6 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
           PAN/GSTIN may identify the legal/tax entity. UBID identifies the operating business establishment across
           department systems.
         </div>
-
-        <div>
-          <div className="section-title">
-            Department source links - {linked} linked / {partial} partial / {missing} missing
-          </div>
-          <div className="sources-grid">
-            {business.sources.map((source) => {
-              const isDeactivated = deactivatedLinks.has(linkKey(source));
-              return (
-              <div
-                className={`source-row ${source.status} ${isDeactivated ? "deactivated-link" : ""}`}
-                key={`${business.ubid}-${source.name}`}
-              >
-                <div
-                  className="src-icon"
-                  style={{
-                    background: source.status === "missing" ? "var(--surface3)" : `${source.color}22`,
-                    color: source.color,
-                  }}
-                >
-                  {source.name.substring(0, 2).toUpperCase()}
-                </div>
-                <div className="src-body">
-                  <div className="src-name">{source.name}</div>
-                  <div className="src-id">{source.id}</div>
-                </div>
-                <div className="src-right">
-                  {source.status !== "missing" ? (
-                    <div className="src-conf" style={{ color: confidenceColor(source.confidence) }}>
-                      {source.confidence}%
-                    </div>
-                  ) : (
-                    <div className="src-conf missing-conf">None</div>
-                  )}
-                  <div className="src-date">{source.date}</div>
-                  <div className={`src-link-badge ${isDeactivated ? "slb-missing" : `slb-${source.status}`}`}>
-                    {isDeactivated ? "Deactivated Link" : "Active Link"}
-                  </div>
-                  <div className="source-actions">
-                    <button
-                      className="panel-link"
-                      type="button"
-                      onClick={() => onNavigate(source.status === "partial" ? "review" : "graph")}
-                    >
-                      Open
-                    </button>
-                    {source.status !== "missing" ? (
-                      <button
-                        className="btn-ghost compact-action danger-action"
-                        type="button"
-                        onClick={() => setPendingDeactivate(source)}
-                        disabled={isDeactivated}
-                      >
-                        Deactivate Link
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {linkActionStatus ? <div className="review-refresh-note">{linkActionStatus}</div> : null}
 
         <div className="two-column-detail">
           <div>
@@ -402,6 +350,116 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
         </div>
       ) : null}
     </>
+  );
+}
+
+interface SourceLinksPanelProps {
+  business: BusinessRecord;
+  linked: number;
+  partial: number;
+  missing: number;
+  deactivatedLinks: Set<string>;
+  linkKey: (source: DepartmentSource) => string;
+  onNavigate: (screen: ScreenId) => void;
+  onDeactivate: (source: DepartmentSource) => void;
+}
+
+function SourceLinksPanel({
+  business,
+  linked,
+  partial,
+  missing,
+  deactivatedLinks,
+  linkKey,
+  onNavigate,
+  onDeactivate,
+}: SourceLinksPanelProps) {
+  const firstActionableSource = business.sources.find((source) => source.status !== "missing" && !deactivatedLinks.has(linkKey(source)));
+
+  return (
+    <section className="source-links-panel prominent-source-section">
+      <div className="sources-section-header">
+        <div>
+          <div className="section-title">
+            Department source links - {linked} linked / {partial} partial / {missing} missing
+          </div>
+          <p>Open a linked record or deactivate a wrong merge without deleting source data.</p>
+        </div>
+        <div className="source-panel-actions">
+          <button className="btn-primary compact-action" type="button" onClick={() => onNavigate("graph")}>
+            <GitFork size={14} aria-hidden="true" />
+            Open Source Links
+          </button>
+          {firstActionableSource ? (
+            <button
+              className="btn-ghost compact-action danger-action"
+              type="button"
+              onClick={() => onDeactivate(firstActionableSource)}
+            >
+              Deactivate Link
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="sources-grid">
+        {business.sources.map((source) => {
+          const isDeactivated = deactivatedLinks.has(linkKey(source));
+          return (
+            <div
+              className={`source-row ${source.status} ${isDeactivated ? "deactivated-link" : ""}`}
+              key={`${business.ubid}-${source.name}`}
+            >
+              <div
+                className="src-icon"
+                style={{
+                  background: source.status === "missing" ? "var(--surface3)" : `${source.color}22`,
+                  color: source.color,
+                }}
+              >
+                {source.name.substring(0, 2).toUpperCase()}
+              </div>
+              <div className="src-body">
+                <div className="src-name">{source.name}</div>
+                <div className="src-id">{source.id}</div>
+              </div>
+              <div className="src-right">
+                {source.status !== "missing" ? (
+                  <div className="src-conf" style={{ color: confidenceColor(source.confidence) }}>
+                    {source.confidence}%
+                  </div>
+                ) : (
+                  <div className="src-conf missing-conf">None</div>
+                )}
+                <div className="src-date">{source.date}</div>
+                <div className={`src-link-badge ${isDeactivated ? "slb-missing" : `slb-${source.status}`}`}>
+                  {isDeactivated ? "Deactivated Link" : "Active Link"}
+                </div>
+                <div className="source-actions">
+                  <button
+                    className="panel-link"
+                    type="button"
+                    onClick={() => onNavigate(source.status === "partial" ? "review" : "graph")}
+                  >
+                    Open
+                  </button>
+                  {source.status !== "missing" ? (
+                    <button
+                      className="btn-ghost compact-action danger-action"
+                      type="button"
+                      onClick={() => onDeactivate(source)}
+                      disabled={isDeactivated}
+                    >
+                      Deactivate Link
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

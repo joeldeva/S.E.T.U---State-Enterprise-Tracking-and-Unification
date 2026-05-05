@@ -4,6 +4,7 @@ import {
   BarChart3,
   ClipboardCheck,
   FileSearch,
+  FileSpreadsheet,
   Fingerprint,
   GitFork,
   LayoutDashboard,
@@ -22,6 +23,7 @@ import BusinessRegistrationScreen from "./screens/BusinessRegistrationScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import ExecutiveDashboardScreen from "./screens/ExecutiveDashboardScreen";
 import IdentityGraphScreen from "./screens/IdentityGraphScreen";
+import MockSpreadsheetScreen from "./screens/MockSpreadsheetScreen";
 import PlaceholderScreen from "./screens/PlaceholderScreen";
 import PinCodeMapScreen from "./screens/PinCodeMapScreen";
 import ReviewQueueScreen from "./screens/ReviewQueueScreen";
@@ -31,6 +33,7 @@ import type { ScreenDefinition, ScreenId } from "./types";
 const screens: ScreenDefinition[] = [
   { id: "dashboard", label: "Executive Dashboard", icon: LayoutDashboard, section: "Core" },
   { id: "ingestion", label: "Data Ingestion / Business Registration", icon: Send, section: "Core" },
+  { id: "spreadsheet", label: "Mock CSV Spreadsheet", icon: FileSpreadsheet, section: "Core", hidden: true },
   { id: "ubid", label: "UBID Registry", icon: Fingerprint, section: "Core" },
   { id: "review", label: "Review Queue", icon: ClipboardCheck, section: "Governance", badge: "12" },
   { id: "activity", label: "Activity Intelligence", icon: Activity, section: "Intelligence" },
@@ -43,6 +46,7 @@ const screens: ScreenDefinition[] = [
 const placeholderCopy: Record<Exclude<ScreenId, "ubid">, string> = {
   dashboard: "State-wide business intelligence summary with source counts, status mix, confidence distribution, and review pressure.",
   ingestion: "Business-facing data submission, identifier format validation, and provisional UBID generation.",
+  spreadsheet: "Spreadsheet-style inspection view for masked synthetic department records.",
   normalization: "Before-and-after cleaning for names, addresses, PIN codes, phone/email fields, and hashed identifiers.",
   resolution: "Explainable match candidates using deterministic anchors, fuzzy scores, conflict checks, and decision zones.",
   review: "Officer workflow for ambiguous cases with approve, reject, attach, create UBID, and audit actions.",
@@ -137,7 +141,9 @@ function App() {
                 ) : activeScreen === "ubid" ? (
                   <UbidRegistry onNavigate={navigate} />
                 ) : activeScreen === "ingestion" ? (
-                  <BusinessRegistrationScreen />
+                  <BusinessRegistrationScreen onNavigate={navigate} />
+                ) : activeScreen === "spreadsheet" ? (
+                  <MockSpreadsheetScreen onNavigate={navigate} />
                 ) : activeScreen === "resolution" ? (
                   <EntityResolutionScreen />
                 ) : activeScreen === "review" ? (

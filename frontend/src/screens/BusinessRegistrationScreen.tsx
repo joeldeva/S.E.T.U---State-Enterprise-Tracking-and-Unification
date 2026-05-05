@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, FileUp, SearchCheck, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileSpreadsheet, FileUp, SearchCheck, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
@@ -10,6 +10,7 @@ import {
   submitBusinessInformation,
   verifyBusinessIdentifiers,
 } from "../lib/api";
+import type { ScreenId } from "../types";
 
 type BusinessType = BusinessSubmissionPayload["business_type"];
 
@@ -79,7 +80,7 @@ function clientValidate(form: BusinessSubmissionPayload) {
   return { errors, warnings };
 }
 
-function BusinessRegistrationScreen() {
+function BusinessRegistrationScreen({ onNavigate }: { onNavigate: (screen: ScreenId) => void }) {
   const [form, setForm] = useState<BusinessSubmissionPayload>(initialForm);
   const [submission, setSubmission] = useState<BusinessSubmission | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -231,12 +232,18 @@ function BusinessRegistrationScreen() {
         </div>
       </div>
 
-      <div className="mock-db-note">
-        Prototype uses CSV/Excel-style synthetic department data. Production deployment would use authorized department APIs,
-        secure data pipelines, or scheduled exports from e-Karmika, Factories/e-Suraksha, KSPCB, BESCOM/BWSSB,
-        and local-body systems.
-        Karnataka department forms may omit PAN/GSTIN, so SETU can also use licence numbers, local identifiers, names,
-        addresses, PIN code, district, owner details, and contact references for matching.
+      <div className="mock-db-note mock-db-note-actionable">
+        <div>
+          Prototype uses CSV/Excel-style synthetic department data. Production deployment would use authorized department APIs,
+          secure data pipelines, or scheduled exports from e-Karmika, Factories/e-Suraksha, KSPCB, BESCOM/BWSSB,
+          and local-body systems.
+          Karnataka department forms may omit PAN/GSTIN, so SETU can also use licence numbers, local identifiers, names,
+          addresses, PIN code, district, owner details, and contact references for matching.
+        </div>
+        <button className="btn-primary compact-action" type="button" onClick={() => onNavigate("spreadsheet")}>
+          <FileSpreadsheet size={15} aria-hidden="true" />
+          View Mock CSV Spreadsheet
+        </button>
       </div>
 
       <div className="resolution-status">

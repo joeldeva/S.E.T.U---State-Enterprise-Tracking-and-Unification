@@ -11,15 +11,6 @@ export interface ModuleNarrative {
   satisfies: string;
 }
 
-export const complianceBadges = [
-  "Synthetic Data Only",
-  "Source Systems Read-Only",
-  "No Hosted LLM for Matching",
-  "Explainable Decisions",
-  "Reversible Merges",
-  "Human Governed",
-];
-
 export const guidedDemoSteps: DemoStep[] = [
   { id: "ingestion", label: "Business data ingestion" },
   { id: "review", label: "Reviewer queue" },
@@ -41,6 +32,11 @@ export const moduleNarratives: Record<ScreenId, ModuleNarrative> = {
     proves: "Business users can submit details, pass format validation, and receive a provisional UBID.",
     matters: "Karnataka can start intake from business-facing submissions while still preserving officer review.",
     satisfies: "PAN/GSTIN are masked after submission, identifier hashes support matching, and warnings route to review.",
+  },
+  spreadsheet: {
+    proves: "The prototype mock database can be inspected like a spreadsheet without exposing raw identifiers.",
+    matters: "Reviewers and judges can verify the synthetic CSV source records behind the ingestion flow.",
+    satisfies: "Only masked PAN/GSTIN and department-safe reference fields are visible in the browser.",
   },
   normalization: {
     proves: "Messy business names, addresses, PIN codes, and identifiers become comparable without exposing raw PAN or GSTIN.",

@@ -297,6 +297,18 @@ export interface MockDepartmentRecord {
   business_sector: string;
   status_in_department: string;
   last_updated: string;
+  date_of_commencement?: string;
+  registration_date?: string;
+  renewal_date?: string;
+  last_inspection_date?: string;
+  active_flag?: string;
+  factory_license_no?: string;
+  shop_license_no?: string;
+  labour_registration_no?: string;
+  kspcb_consent_no?: string;
+  bescom_consumer_no?: string;
+  bwssb_consumer_no?: string;
+  trade_license_no?: string;
 }
 
 export interface MockDatabaseSummary {
@@ -503,8 +515,8 @@ export function fetchMockDatabaseSummary(): Promise<MockDatabaseSummary> {
   return apiFetch<MockDatabaseSummary>("/api/mock-database/summary");
 }
 
-export function fetchMockDatabaseRecords(): Promise<MockDepartmentRecord[]> {
-  return apiFetch<MockDepartmentRecord[]>("/api/mock-database/records");
+export function fetchMockDatabaseRecords(limit = 500): Promise<MockDepartmentRecord[]> {
+  return apiFetch<MockDepartmentRecord[]>(`/api/mock-database/records?limit=${limit}`);
 }
 
 export function verifyBusinessIdentifiers(

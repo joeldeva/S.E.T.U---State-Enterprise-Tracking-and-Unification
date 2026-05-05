@@ -49,7 +49,7 @@ function AppShell({
             <div key={section}>
               <div className="nav-section">{section}</div>
               {screens
-                .filter((screen) => screen.section === section)
+                .filter((screen) => screen.section === section && !screen.hidden)
                 .map((screen) => {
                   const Icon = screen.icon;
                   const isActive = screen.id === activeScreen;

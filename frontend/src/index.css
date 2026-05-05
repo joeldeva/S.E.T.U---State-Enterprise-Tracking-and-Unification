@@ -761,6 +761,39 @@ button {
   justify-content: flex-end;
 }
 
+.source-links-panel {
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+  padding: 14px;
+}
+
+.prominent-source-section {
+  outline: 1px solid rgba(37, 99, 235, 0.06);
+}
+
+.sources-section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.sources-section-header p {
+  color: var(--text3);
+  margin-top: 3px;
+}
+
+.source-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 210px;
+}
+
 .compact-action {
   min-height: 26px;
   padding: 4px 8px;
@@ -3136,6 +3169,24 @@ button:disabled {
     flex-direction: column;
   }
 
+  .sources-section-header,
+  .mock-db-note-actionable,
+  .spreadsheet-header,
+  .spreadsheet-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .spreadsheet-header {
+    display: flex;
+  }
+
+  .source-panel-actions,
+  .spreadsheet-search {
+    width: 100%;
+    min-width: 0;
+  }
+
   .guided-demo-bar,
   .dashboard-hero {
     flex-direction: column;
@@ -3675,6 +3726,18 @@ body {
   color: var(--text2);
   border-radius: 8px;
   padding: 10px 12px;
+}
+
+.mock-db-note-actionable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.mock-db-note-actionable > div {
+  flex: 1;
+  min-width: 0;
 }
 
 .registration-layout {
@@ -4541,6 +4604,114 @@ body {
   gap: 2px;
   border-top: 1px solid var(--border);
   padding-top: 8px;
+}
+
+.spreadsheet-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.spreadsheet-header {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+}
+
+.spreadsheet-header h1 {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin: 2px 0 4px;
+}
+
+.spreadsheet-header p {
+  color: var(--text3);
+}
+
+.spreadsheet-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.spreadsheet-search {
+  min-width: 300px;
+  height: 38px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  color: var(--text3);
+}
+
+.spreadsheet-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.spreadsheet-table-wrap {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+}
+
+.spreadsheet-table {
+  min-width: 1880px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+}
+
+.spreadsheet-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #eef3f8;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.spreadsheet-table th,
+.spreadsheet-table td {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.spreadsheet-table td {
+  color: var(--text2);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.spreadsheet-table tbody tr:hover td {
+  background: #f8fafc;
 }
 
 .matched-records {
