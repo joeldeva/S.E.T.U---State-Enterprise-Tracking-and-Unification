@@ -118,6 +118,27 @@ function BusinessRegistrationScreen() {
       });
   }, []);
 
+  useEffect(() => {
+    if (!submission) return;
+    window.scrollTo({ top: 0, behavior: "auto" });
+    document.querySelector(".content")?.scrollTo({ top: 0, behavior: "auto" });
+  }, [submission]);
+
+  if (submission) {
+    return (
+      <RegistrationResultPage
+        submission={submission}
+        onRegisterAnother={() => {
+          setSubmission(null);
+          setErrors([]);
+          setWarnings([]);
+          setIdentifierVerification(null);
+          setStatusText("Ready to validate business information.");
+        }}
+      />
+    );
+  }
+
   function updateField<K extends keyof BusinessSubmissionPayload>(field: K, value: BusinessSubmissionPayload[K]) {
     setForm((current) => ({ ...current, [field]: value }));
     if (field === "pan" || field === "gstin") {
@@ -376,33 +397,81 @@ function BusinessRegistrationScreen() {
             {validationPreview.warnings.length ? <MessageList tone="warning" items={validationPreview.warnings} /> : null}
           </section>
 
-          {submission ? (
-            <section className="form-panel success-panel">
-              <div className="panel-header compact">
-                <span className="panel-title">UBID Result</span>
-                <span className={`status-pill ${statusClass(submission.ubid_status)}`}>
-                  {submission.status_label}
-                </span>
-              </div>
-              <div className="generated-ubid">{submission.ubid}</div>
-              <div className="submission-summary">
-                <span>{submission.business_name}</span>
-                <span>PAN: {submission.identifiers.pan_masked ?? "Not provided"}</span>
-                <span>GSTIN: {submission.identifiers.gstin_masked ?? "Not provided"}</span>
-                <span>Match confidence: {submission.match_confidence}%</span>
-                <span>{submission.next_step}</span>
-              </div>
-              <ValidationResult validation={submission.validation_results} warnings={submission.warnings} />
-              {submission.matched_records.length ? <MatchedRecordsTable records={submission.matched_records} /> : null}
-              {submission.match_notes?.length ? <MessageList tone="info" items={submission.match_notes} /> : null}
-            </section>
-          ) : null}
-
           {errors.length ? <MessageList tone="error" items={errors} /> : null}
           {warnings.length ? <MessageList tone="warning" items={warnings} /> : null}
         </aside>
       </div>
     </section>
+  );
+}
+
+function RegistrationResultPage({
+  submission,
+  onRegisterAnother,
+}: {
+  submission: BusinessSubmission;
+  onRegisterAnother: () => void;
+}) {
+  return (
+    <section className="registration-screen result-screen">
+      <div className="result-page-card">
+        <div className="result-hero">
+          <div>
+            <p className="eyebrow">UBID Result</p>
+            <h1>{submission.ubid}</h1>
+            <div className="result-business-name">{submission.business_name}</div>
+          </div>
+          <span className={`status-pill ${statusClass(submission.ubid_status)}`}>
+            {submission.status_label}
+          </span>
+        </div>
+
+        <div className="result-summary-grid">
+          <ResultFact label="PAN" value={submission.identifiers.pan_masked ?? "Not provided"} />
+          <ResultFact label="GSTIN" value={submission.identifiers.gstin_masked ?? "Not provided"} />
+          <ResultFact label="Match confidence" value={`${submission.match_confidence}%`} />
+          <ResultFact label="Matched records" value={`${submission.matched_records.length}`} />
+        </div>
+
+        <div className="result-next-step">
+          <ShieldCheck size={18} aria-hidden="true" />
+          <span>{submission.next_step}</span>
+        </div>
+
+        <div className="result-content-grid">
+          <section className="result-section">
+            <div className="section-title">Verification checks</div>
+            <ValidationResult validation={submission.validation_results} warnings={submission.warnings} />
+          </section>
+
+          <section className="result-section">
+            <div className="section-title">Match notes</div>
+            {submission.match_notes?.length ? (
+              <MessageList tone="info" items={submission.match_notes} />
+            ) : (
+              <div className="empty-state">No additional match notes</div>
+            )}
+          </section>
+        </div>
+
+        {submission.matched_records.length ? <MatchedRecordsTable records={submission.matched_records} expanded /> : null}
+
+        <div className="result-actions">
+          <button className="btn-primary" type="button" onClick={onRegisterAnother}>
+            Register Another Business
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ResultFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="result-fact">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
 
@@ -573,16 +642,16 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function MatchedRecordsTable({ records }: { records: BusinessSubmission["matched_records"] }) {
+function MatchedRecordsTable({ records, expanded = false }: { records: BusinessSubmission["matched_records"]; expanded?: boolean }) {
   return (
-    <div className="matched-records">
+    <div className={`matched-records ${expanded ? "expanded" : ""}`}>
       <div className="section-title">Matched department records</div>
       <div className="matched-table">
         <span>Department</span>
         <span>Record</span>
         <span>Business</span>
         <span>Status</span>
-        {records.slice(0, 6).map((record) => (
+        {records.slice(0, expanded ? 12 : 6).map((record) => (
           <div className="matched-row" key={record.record_id}>
             <span>{record.department}</span>
             <span>{record.department_record_id}</span>
