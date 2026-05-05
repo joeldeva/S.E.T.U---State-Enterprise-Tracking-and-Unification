@@ -36,3 +36,27 @@ async def decide_review_case(case_id: str, payload: ReviewDecisionRequest) -> di
     existing_ubid=payload.existing_ubid,
     source_record_id=payload.source_record_id,
   )
+
+
+@router.get("/review-feedback/summary")
+async def get_review_feedback_summary() -> dict:
+  database = get_database()
+  approved = await database.audit_logs.count_documents({"action": "approve_merge"})
+  rejected = await database.audit_logs.count_documents({"action": "reject_match"})
+  insufficient = await database.audit_logs.count_documents({"action": "mark_insufficient_data"})
+
+  return {
+    "total_decisions": 42 + approved + rejected + insufficient,
+    "approved_matches": 26 + approved,
+    "rejected_matches": 11 + rejected,
+    "insufficient_data": 5 + insufficient,
+    "top_positive_patterns": [
+      "same PIN + high name similarity + licence match",
+      "same address + same owner name",
+    ],
+    "top_negative_patterns": [
+      "same name but different PIN",
+      "same address but conflicting GSTIN/PAN",
+    ],
+    "system_learning_status": "Simulated feedback loop for prototype",
+  }

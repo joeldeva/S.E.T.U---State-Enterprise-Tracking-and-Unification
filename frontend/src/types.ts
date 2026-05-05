@@ -18,6 +18,7 @@ export type ScreenId =
 export interface DepartmentSource {
   name: string;
   id: string;
+  sourceRecordId?: string;
   confidence: number;
   date: string;
   status: SourceStatus;
@@ -47,6 +48,7 @@ export interface BusinessRecord {
   confidence: number;
   type: string;
   district: string;
+  pinCode: string;
   since: string;
   sources: DepartmentSource[];
   explain: EvidenceFactor[];

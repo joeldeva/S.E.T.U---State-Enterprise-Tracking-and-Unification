@@ -27,6 +27,22 @@ Current application shape:
 - No hosted LLM is used for identity matching.
 - Raw PAN/GSTIN values must not be exposed in the UI.
 
+## Prototype vs Production Data Flow
+
+Prototype:
+
+- CSV/Excel mock database
+- Synthetic data only
+
+Production:
+
+- Authorized APIs
+- Secure data pipelines
+- Scheduled exports
+- Role-based access
+- Audit logging
+- No raw PII to hosted LLMs
+
 ## Department Field Alignment Rationale
 
 S.E.T.U now treats PAN and GSTIN as optional identity signals, not mandatory anchors. The mock department database and normalization logic prioritize fields commonly present in Karnataka department workflows: establishment/business name, postal/site address, district, PIN code, employer/owner/promoter/authorised signatory details, contact information, registration/licence/consent numbers, utility consumer numbers, commencement/registration/renewal/inspection dates, and department status flags.

@@ -119,6 +119,22 @@ If `MONGODB_URI` is configured, the backend uses MongoDB and seeds synthetic dat
 
 If MongoDB is unavailable, the backend can fall back to an in-memory mock database for demonstration. That mode is useful for UI checks but is not durable.
 
+## Prototype vs Production Data Flow
+
+Prototype:
+
+- CSV/Excel-style mock database
+- Synthetic data only
+
+Production:
+
+- Authorized department APIs
+- Secure data pipelines
+- Scheduled exports from department systems
+- Role-based access
+- Audit logging
+- No raw PII to hosted LLMs
+
 ## Governance Guardrails
 
 - Synthetic or scrambled data only

@@ -1,14 +1,14 @@
 import { Activity, RefreshCw, Zap } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
-  fetchActivityEvents,
   fetchAuditLogs,
+  fetchUnmatchedActivityEvents,
   fetchUbids,
   runActivityIntelligence,
-  type ActivityEvent,
   type ActivityRunResponse,
   type ActivityStatus,
   type AuditLog,
+  type UnmatchedActivityEvent,
   type UbidRecord,
 } from "../lib/api";
 
@@ -165,16 +165,40 @@ const fallbackStatuses: ActivityStatus[] = [
   },
 ];
 
-const fallbackUnmatched: ActivityEvent[] = [
+const fallbackUnmatched: UnmatchedActivityEvent[] = [
   {
-    _id: "event_007",
-    ubid: null,
-    source: "BESCOM",
-    source_record_id: "src_bescom_unmatched_001",
-    event_type: "electricity_usage",
+    event_id: "event_007",
+    department: "BESCOM",
+    department_record_id: "B-U-001",
+    business_name: "Peenya Fabrication Shed 27",
+    event_type: "utility_consumption",
     event_date: "2026-04-29",
-    activity_score: 20,
-    joined_confidence: 0,
+    possible_matches: [
+      {
+        ubid: "KA-UBID-A92F31C8D410",
+        canonical_name: "Sri Lakshmi Engineering Works",
+        confidence: 72,
+      },
+    ],
+    reason: "No strong identifier match / low confidence join",
+    review_status: "pending",
+  },
+  {
+    event_id: "event_006",
+    department: "BESCOM",
+    department_record_id: "B-904",
+    business_name: "Karnataka Granite Export Unit",
+    event_type: "low_utility_consumption",
+    event_date: "2025-08-12",
+    possible_matches: [
+      {
+        ubid: "KA-UBID-9F03AD1C6B55",
+        canonical_name: "Karnataka Granite Exports",
+        confidence: 68,
+      },
+    ],
+    reason: "No strong identifier match / low confidence join",
+    review_status: "pending",
   },
 ];
 
@@ -202,19 +226,20 @@ function countStatuses(statuses: ActivityStatus[]) {
 
 function ActivityIntelligenceScreen() {
   const [statuses, setStatuses] = useState<ActivityStatus[]>(fallbackStatuses);
-  const [unmatchedEvents, setUnmatchedEvents] = useState<ActivityEvent[]>(fallbackUnmatched);
+  const [unmatchedEvents, setUnmatchedEvents] = useState<UnmatchedActivityEvent[]>(fallbackUnmatched);
   const [ubids, setUbids] = useState<UbidRecord[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedUbid, setSelectedUbid] = useState(fallbackStatuses[0].ubid);
   const [statusText, setStatusText] = useState("Fallback demo data loaded");
   const [isFallback, setIsFallback] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
+  const [reviewActionStatus, setReviewActionStatus] = useState("");
 
   async function refreshData() {
     try {
-      const [ubidData, eventData, auditData] = await Promise.all([
+      const [ubidData, unmatchedData, auditData] = await Promise.all([
         fetchUbids(),
-        fetchActivityEvents(),
+        fetchUnmatchedActivityEvents(),
         fetchAuditLogs(),
       ]);
       const activityStatuses = ubidData.map((ubid) => ({
@@ -231,7 +256,7 @@ function ActivityIntelligenceScreen() {
         setStatuses(activityStatuses);
         setSelectedUbid((current) => activityStatuses.find((item) => item.ubid === current)?.ubid ?? activityStatuses[0].ubid);
       }
-      setUnmatchedEvents(eventData.filter((event) => !event.ubid));
+      setUnmatchedEvents(unmatchedData);
       setUbids(ubidData);
       setAuditLogs(auditData);
       setStatusText(`Backend connected - ${activityStatuses.length} UBIDs loaded`);
@@ -257,7 +282,8 @@ function ActivityIntelligenceScreen() {
     try {
       const result: ActivityRunResponse = await runActivityIntelligence();
       setStatuses(result.statuses);
-      setUnmatchedEvents(result.unmatched_events);
+      const unmatchedData = await fetchUnmatchedActivityEvents();
+      setUnmatchedEvents(unmatchedData);
       setSelectedUbid((current) => result.statuses.find((item) => item.ubid === current)?.ubid ?? result.statuses[0]?.ubid ?? "");
       const [ubidData, auditData] = await Promise.all([fetchUbids(), fetchAuditLogs()]);
       setUbids(ubidData);
@@ -279,6 +305,10 @@ function ActivityIntelligenceScreen() {
     [statuses, selectedUbid],
   );
   const counts = countStatuses(statuses);
+
+  function handleReviewEvent(event: UnmatchedActivityEvent) {
+    setReviewActionStatus(`${event.event_id} sent to reviewer queue placeholder. Event remains visible for audit review.`);
+  }
 
   return (
     <section className="activity-screen">
@@ -404,16 +434,39 @@ function ActivityIntelligenceScreen() {
           <span className="panel-title">Unmatched Activity Events</span>
           <span className="panel-count">{unmatchedEvents.length}</span>
         </div>
-        {unmatchedEvents.map((event) => (
-          <div className="unmatched-event" key={event._id}>
-            <span>{event.source}</span>
-            <strong>{event.event_type.split("_").join(" ")}</strong>
-            <span>{event.event_date}</span>
-            <span>{event.source_record_id ?? "No source record"}</span>
+        {unmatchedEvents.length ? (
+          <div className="unmatched-table-head">
+            <span>Event ID</span>
+            <span>Department</span>
+            <span>Event Type</span>
+            <span>Date</span>
+            <span>Reason</span>
+            <span>Possible Match</span>
+            <span>Confidence</span>
+            <span>Action</span>
           </div>
-        ))}
+        ) : null}
+        {unmatchedEvents.map((event) => {
+          const match = event.possible_matches[0];
+          return (
+            <div className="unmatched-event" key={event.event_id}>
+              <span className="mono-text">{event.event_id}</span>
+              <span>{event.department}</span>
+              <strong>{event.event_type.split("_").join(" ")}</strong>
+              <span>{event.event_date}</span>
+              <span>{event.reason}</span>
+              <span>{match ? `${match.ubid} / ${match.canonical_name}` : "No candidate"}</span>
+              <span className="conf-label">{match ? `${match.confidence}%` : "0%"}</span>
+              <button className="btn-ghost compact-action" type="button" onClick={() => handleReviewEvent(event)}>
+                Review Event
+              </button>
+            </div>
+          );
+        })}
         {!unmatchedEvents.length ? <div className="empty-state">No unmatched events</div> : null}
       </div>
+
+      {reviewActionStatus ? <div className="review-refresh-note">{reviewActionStatus}</div> : null}
 
       <div className="review-refresh-note">
         Refreshed datasets: {ubids.length} UBIDs / {auditLogs.filter((log) => log.action === "activity_status_updated").length} activity audit logs

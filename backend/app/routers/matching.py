@@ -13,6 +13,39 @@ REPLACE_COLLECTIONS = (
   "ubid_registry",
 )
 
+MATCHING_THRESHOLDS = {
+  "auto_link": {
+    "label": "Auto-link",
+    "range": "90-100",
+    "min": 90,
+    "max": 100,
+    "description": "Strong deterministic or combined evidence; link can be created with audit history.",
+  },
+  "human_review": {
+    "label": "Human Review",
+    "range": "65-89",
+    "min": 65,
+    "max": 89,
+    "description": "Plausible match with uncertainty or missing evidence; route to reviewer.",
+  },
+  "keep_separate": {
+    "label": "Keep Separate",
+    "range": "below 65",
+    "min": 0,
+    "max": 64,
+    "description": "Evidence is weak or conflicting; do not merge automatically.",
+  },
+  "evidence_weights": [
+    {"signal": "GSTIN/PAN hash match", "weight": "strong positive"},
+    {"signal": "Licence or local identifier match", "weight": "strong positive"},
+    {"signal": "Name similarity", "weight": "medium positive"},
+    {"signal": "Address similarity", "weight": "medium positive"},
+    {"signal": "PIN/district match", "weight": "supporting positive"},
+    {"signal": "Conflict penalty", "weight": "strong negative"},
+  ],
+  "principle": "Thresholds are conservative because a wrong merge is more costly than a missed merge.",
+}
+
 
 async def _replace_collection(collection_name: str, documents: list[dict]) -> int:
   database = get_database()
@@ -53,3 +86,8 @@ async def run_matching() -> dict:
       "review_queue": result["review_queue"],
     },
   )
+
+
+@router.get("/matching/thresholds")
+async def get_matching_thresholds() -> dict:
+  return MATCHING_THRESHOLDS

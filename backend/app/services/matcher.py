@@ -8,6 +8,7 @@ from difflib import SequenceMatcher
 from typing import Any
 
 from .normalizer import normalize_source_records
+from .ubid_profile import build_link_details, build_ubid_identity_sections
 from .ubid_generator import anchor_for_record, canonical_name, generate_ubid
 
 
@@ -300,12 +301,14 @@ def build_ubid_registry(
       existing["candidate_records"] = sorted(set(existing.get("candidate_records", [])) | set(linked_records) | set(candidate_records))
       continue
 
+    name = canonical_name(component_records)
     registry_by_ubid[ubid] = {
       "_id": ubid,
-      "canonical_name": canonical_name(component_records),
+      "canonical_name": name,
       "anchor_type": anchor_type,
       "anchor_hash": anchor_hash,
       "linked_records": linked_records,
+      "linked_record_details": build_link_details(component_records),
       "candidate_records": candidate_records,
       "current_status": "Active" if len(linked_records) > 1 else "Insufficient Data",
       "status_confidence": 75 if len(linked_records) > 1 else 30,
@@ -317,6 +320,7 @@ def build_ubid_registry(
       "created_by": "entity_resolution",
       "reversible": True,
       "generated_by": "entity_resolution",
+      **build_ubid_identity_sections(ubid, name, component_records, anchor_type),
     }
 
   return sorted(registry_by_ubid.values(), key=lambda document: document["_id"])

@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from .serialization import serialize_document
+from .ubid_profile import build_link_details, build_ubid_identity_sections
 from .ubid_generator import anchor_for_record, canonical_name, generate_review_ubid, generate_ubid
 
 ReviewDecision = Literal[
@@ -47,33 +48,50 @@ async def _upsert_merge_ubid(
 ) -> dict[str, Any]:
   source_ids = sorted([candidate["record_a"], candidate["record_b"]])
   existing = await _find_ubid_for_records(database, source_ids)
+  records = await _candidate_records(database, candidate)
 
   if existing:
     ubid = existing["_id"]
+    existing_link_ids = {detail.get("record_id") for detail in existing.get("linked_record_details", [])}
+    new_link_details = [
+      detail for detail in build_link_details(records) if detail.get("record_id") not in existing_link_ids
+    ]
+    merged_link_details = [*existing.get("linked_record_details", []), *new_link_details]
+    linked_after = sorted(set(existing.get("linked_records", [])) | set(source_ids))
+    all_records = await _normalized_records(database, linked_after)
+    identity_sections = build_ubid_identity_sections(
+      ubid,
+      existing.get("canonical_name", canonical_name(all_records)),
+      all_records,
+      existing.get("anchor_type"),
+    )
     await database.ubid_registry.update_one(
       {"_id": ubid},
       {
         "$addToSet": {"linked_records": {"$each": source_ids}},
         "$pullAll": {"candidate_records": source_ids},
         "$set": {
+          "linked_record_details": merged_link_details,
           "review_status": "reviewer_verified",
           "match_confidence": max(existing.get("match_confidence", 0), candidate.get("confidence", 0)),
           "reversible": True,
+          **identity_sections,
         },
       },
     )
     return await database.ubid_registry.find_one({"_id": ubid})
 
-  records = await _candidate_records(database, candidate)
   anchor = next((anchor_for_record(record) for record in records if anchor_for_record(record)), None)
   anchor_type, anchor_hash = anchor if anchor else ("SYNTHETIC", None)
   ubid = generate_ubid(anchor_hash, source_ids)
+  name = canonical_name(records)
   document = {
     "_id": ubid,
-    "canonical_name": canonical_name(records),
+    "canonical_name": name,
     "anchor_type": anchor_type,
     "anchor_hash": anchor_hash,
     "linked_records": source_ids,
+    "linked_record_details": build_link_details(records),
     "candidate_records": [],
     "current_status": "Insufficient Data",
     "status_confidence": 30,
@@ -81,6 +99,7 @@ async def _upsert_merge_ubid(
     "review_status": "reviewer_verified",
     "created_by": "reviewer",
     "reversible": True,
+    **build_ubid_identity_sections(ubid, name, records, anchor_type),
   }
   await database.ubid_registry.update_one({"_id": ubid}, {"$set": document}, upsert=True)
   return document
@@ -101,12 +120,14 @@ async def _create_new_ubid(
   anchor = anchor_for_record(records[0]) if records else None
   anchor_type, anchor_hash = anchor if anchor else ("REVIEW_CREATED", None)
   ubid = generate_review_ubid(case_id, selected_source)
+  name = canonical_name(records) if records else "Reviewer Created Business"
   document = {
     "_id": ubid,
-    "canonical_name": canonical_name(records) if records else "Reviewer Created Business",
+    "canonical_name": name,
     "anchor_type": anchor_type,
     "anchor_hash": anchor_hash,
     "linked_records": [selected_source],
+    "linked_record_details": build_link_details(records),
     "candidate_records": [],
     "current_status": "Insufficient Data",
     "status_confidence": 25,
@@ -114,6 +135,7 @@ async def _create_new_ubid(
     "review_status": "reviewer_created",
     "created_by": "reviewer",
     "reversible": True,
+    **build_ubid_identity_sections(ubid, name, records, anchor_type),
   }
   await database.ubid_registry.update_one({"_id": ubid}, {"$set": document}, upsert=True)
   return document
@@ -140,15 +162,31 @@ async def _attach_to_existing_ubid(
   else:
     records_to_attach = [source_id for source_id in source_ids if source_id not in linked] or source_ids
 
+  attach_records = await _normalized_records(database, records_to_attach)
+  existing_link_ids = {detail.get("record_id") for detail in existing.get("linked_record_details", [])}
+  new_link_details = [
+    detail for detail in build_link_details(attach_records) if detail.get("record_id") not in existing_link_ids
+  ]
+  linked_after = sorted(set(existing.get("linked_records", [])) | set(records_to_attach))
+  all_records = await _normalized_records(database, linked_after)
+  identity_sections = build_ubid_identity_sections(
+    existing["_id"],
+    existing.get("canonical_name", canonical_name(all_records)),
+    all_records,
+    existing.get("anchor_type"),
+  )
+
   await database.ubid_registry.update_one(
     {"_id": existing["_id"]},
     {
       "$addToSet": {"linked_records": {"$each": records_to_attach}},
       "$pullAll": {"candidate_records": records_to_attach},
       "$set": {
+        "linked_record_details": [*existing.get("linked_record_details", []), *new_link_details],
         "review_status": "reviewer_attached",
         "match_confidence": max(existing.get("match_confidence", 0), candidate.get("confidence", 0)),
         "reversible": True,
+        **identity_sections,
       },
     },
   )

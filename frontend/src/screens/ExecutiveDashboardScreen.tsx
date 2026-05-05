@@ -1,6 +1,7 @@
 import {
   Activity,
   ArrowRight,
+  BrainCircuit,
   ClipboardCheck,
   FileSearch,
   Fingerprint,
@@ -25,6 +26,7 @@ const metrics = [
   { label: "Active businesses", value: "61", tone: "green" },
   { label: "Dormant businesses", value: "22", tone: "amber" },
   { label: "Closed businesses", value: "9", tone: "red" },
+  { label: "Unmatched Events", value: "2", tone: "red" },
 ];
 
 const impactItems = [
@@ -48,6 +50,15 @@ const priorityCases = [
   { caseId: "CASE-002", title: "Same PIN, similar owner, partial address", confidence: 76, priority: "Medium" },
   { caseId: "CASE-003", title: "Utility event unmatched to registry", confidence: 68, priority: "Low" },
 ];
+
+const reviewerLearning = {
+  total: 42,
+  approved: 26,
+  rejected: 11,
+  insufficient: 5,
+  positivePatterns: ["same PIN + high name similarity + licence match", "same address + same owner name"],
+  negativePatterns: ["same name but different PIN", "same address but conflicting GSTIN/PAN"],
+};
 
 const statusDistribution = [
   { label: "Active", count: 61, color: "#047857" },
@@ -181,6 +192,30 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
             ))}
           </div>
         </article>
+
+        <article className="dashboard-panel learning-panel">
+          <div className="panel-header compact">
+            <span className="panel-title">Reviewer Feedback Learning</span>
+            <BrainCircuit size={15} aria-hidden="true" />
+          </div>
+          <div className="learning-card-body">
+            <div className="learning-stats">
+              <MiniStat label="Decisions" value={reviewerLearning.total} />
+              <MiniStat label="Approved" value={reviewerLearning.approved} />
+              <MiniStat label="Rejected" value={reviewerLearning.rejected} />
+              <MiniStat label="Insufficient" value={reviewerLearning.insufficient} />
+            </div>
+            <p>
+              Reviewer decisions are stored as labelled examples. In production, these recalibrate confidence weights
+              and reduce future manual review load.
+            </p>
+            <div className="pattern-list">
+              {[...reviewerLearning.positivePatterns, ...reviewerLearning.negativePatterns].map((pattern) => (
+                <span key={pattern}>{pattern}</span>
+              ))}
+            </div>
+          </div>
+        </article>
       </div>
 
       <div className="module-shortcuts">
@@ -195,6 +230,15 @@ function ExecutiveDashboardScreen({ onNavigate, onStartDemo }: ExecutiveDashboar
         })}
       </div>
     </section>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="mini-stat">
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
   );
 }
 

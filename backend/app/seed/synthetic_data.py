@@ -436,6 +436,88 @@ UBID_REGISTRY: list[dict[str, Any]] = [
   },
 ]
 
+_SOURCE_RECORDS_BY_ID = {record["_id"]: record for record in SOURCE_RECORDS}
+
+_UBID_PROFILE_SECTIONS: dict[str, dict[str, Any]] = {
+  "KA-UBID-A92F31C8D410": {
+    "legal_entity_anchor": {
+      "pan_hash": "hash_demo_pan_001",
+      "gstin_hash": "hash_demo_gstin_001",
+      "anchor_status": "verified_mock",
+    },
+    "establishment_identity": {
+      "ubid": "KA-UBID-A92F31C8D410",
+      "operating_unit_name": "Sri Lakshmi Engineering Works",
+      "primary_location": "Peenya Industrial Area, Bengaluru",
+      "pin_code": "560058",
+      "department_record_count": 5,
+    },
+  },
+  "KA-UBID-D81F9A220C77": {
+    "legal_entity_anchor": {
+      "pan_hash": "hash_demo_pan_002",
+      "gstin_hash": "hash_demo_gstin_002",
+      "anchor_status": "available",
+    },
+    "establishment_identity": {
+      "ubid": "KA-UBID-D81F9A220C77",
+      "operating_unit_name": "Ananya Textiles",
+      "primary_location": "Yeshwanthpur, Bengaluru",
+      "pin_code": "560022",
+      "department_record_count": 1,
+    },
+  },
+  "KA-UBID-3B5E61C90A22": {
+    "legal_entity_anchor": {
+      "pan_hash": "hash_demo_pan_004",
+      "gstin_hash": None,
+      "anchor_status": "available",
+    },
+    "establishment_identity": {
+      "ubid": "KA-UBID-3B5E61C90A22",
+      "operating_unit_name": "Ravi Stone Crushers",
+      "primary_location": "Tumkur",
+      "pin_code": None,
+      "department_record_count": 0,
+    },
+  },
+  "KA-UBID-9F03AD1C6B55": {
+    "legal_entity_anchor": {
+      "pan_hash": "hash_demo_pan_006",
+      "gstin_hash": "hash_demo_gstin_006",
+      "anchor_status": "conflict",
+    },
+    "establishment_identity": {
+      "ubid": "KA-UBID-9F03AD1C6B55",
+      "operating_unit_name": "Karnataka Granite Exports",
+      "primary_location": "Malur Road, Kolar",
+      "pin_code": "563101",
+      "department_record_count": 1,
+    },
+  },
+}
+
+
+def _seed_link_detail(record_id: str) -> dict[str, Any]:
+  source_record = _SOURCE_RECORDS_BY_ID.get(record_id, {})
+  return {
+    "record_id": record_id,
+    "department": source_record.get("department"),
+    "department_record_id": source_record.get("source_record_id", record_id),
+    "active": True,
+    "link_status": "active",
+    "deactivated_at": None,
+    "deactivated_by": None,
+    "deactivation_reason": None,
+  }
+
+
+for _ubid_document in UBID_REGISTRY:
+  _ubid_document["linked_record_details"] = [
+    _seed_link_detail(record_id) for record_id in _ubid_document.get("linked_records", [])
+  ]
+  _ubid_document.update(_UBID_PROFILE_SECTIONS.get(_ubid_document["_id"], {}))
+
 REVIEW_QUEUE: list[dict[str, Any]] = [
   {
     "_id": "review_001",
@@ -509,10 +591,22 @@ ACTIVITY_EVENTS: list[dict[str, Any]] = [
     "_id": "event_006",
     "ubid": "KA-UBID-9F03AD1C6B55",
     "source": "BESCOM",
+    "source_record_id": "src_bescom_904",
+    "department_record_id": "B-904",
+    "business_name": "Karnataka Granite Export Unit",
     "event_type": "low_utility_consumption",
     "event_date": "2025-08-12",
     "activity_score": 8,
     "joined_confidence": 68,
+    "possible_matches": [
+      {
+        "ubid": "KA-UBID-9F03AD1C6B55",
+        "canonical_name": "Karnataka Granite Exports",
+        "confidence": 68,
+      }
+    ],
+    "reason": "No strong identifier match / low confidence join",
+    "review_status": "pending",
   },
   {
     "_id": "event_008",
@@ -528,10 +622,21 @@ ACTIVITY_EVENTS: list[dict[str, Any]] = [
     "ubid": None,
     "source": "BESCOM",
     "source_record_id": "src_bescom_unmatched_001",
+    "department_record_id": "B-U-001",
+    "business_name": "Peenya Fabrication Shed 27",
     "event_type": "utility_consumption",
     "event_date": "2026-04-29",
     "activity_score": 20,
     "joined_confidence": 0,
+    "possible_matches": [
+      {
+        "ubid": "KA-UBID-A92F31C8D410",
+        "canonical_name": "Sri Lakshmi Engineering Works",
+        "confidence": 72,
+      }
+    ],
+    "reason": "No strong identifier match / low confidence join",
+    "review_status": "pending",
   },
 ]
 

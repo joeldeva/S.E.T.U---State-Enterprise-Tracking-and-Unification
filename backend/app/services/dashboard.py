@@ -1,5 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
+from .activity_engine import LOW_CONFIDENCE_JOIN_THRESHOLD
 from .serialization import serialize_document
 
 
@@ -18,7 +19,9 @@ async def build_dashboard_summary(database: AsyncIOMotorDatabase) -> dict:
 
   auto_linked = await database.match_candidates.count_documents({"decision_zone": "auto_link"})
   pending_reviews = await database.review_queue.count_documents({"review_status": "pending"})
-  unmatched_events = await database.activity_events.count_documents({"ubid": None})
+  unmatched_events = await database.activity_events.count_documents(
+    {"$or": [{"ubid": None}, {"joined_confidence": {"$lt": LOW_CONFIDENCE_JOIN_THRESHOLD}}]}
+  )
   business_submissions = await database.business_submissions.count_documents({})
   verified_ubids = await database.ubid_registry.count_documents(
     {"$or": [{"ubid_status": "verified"}, {"review_status": {"$in": ["system_verified", "reviewer_verified"]}}]}

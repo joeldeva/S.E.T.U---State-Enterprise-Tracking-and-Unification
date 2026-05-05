@@ -99,6 +99,7 @@ export interface UbidRecord {
   _id: string;
   canonical_name: string;
   linked_records: string[];
+  linked_record_details?: LinkedRecordDetail[];
   candidate_records?: string[];
   current_status?: string;
   status_confidence?: number;
@@ -109,6 +110,8 @@ export interface UbidRecord {
   last_activity_date?: string | null;
   unmatched_event_count?: number;
   review_status?: string;
+  legal_entity_anchor?: LegalEntityAnchor;
+  establishment_identity?: EstablishmentIdentity;
 }
 
 export interface ActivityEvent {
@@ -120,6 +123,47 @@ export interface ActivityEvent {
   event_date: string;
   activity_score?: number;
   joined_confidence?: number;
+}
+
+export interface LinkedRecordDetail {
+  record_id: string;
+  department?: string | null;
+  department_record_id?: string | null;
+  active: boolean;
+  link_status: "active" | "deactivated";
+  deactivated_at?: string | null;
+  deactivated_by?: string | null;
+  deactivation_reason?: string | null;
+}
+
+export interface LegalEntityAnchor {
+  pan_hash?: string | null;
+  gstin_hash?: string | null;
+  anchor_status: "available" | "missing" | "conflict" | "verified_mock";
+}
+
+export interface EstablishmentIdentity {
+  ubid: string;
+  operating_unit_name: string;
+  primary_location: string;
+  pin_code?: string | null;
+  department_record_count: number;
+}
+
+export interface UnmatchedActivityEvent {
+  event_id: string;
+  department: string;
+  department_record_id: string;
+  business_name: string;
+  event_type: string;
+  event_date: string;
+  possible_matches: Array<{
+    ubid: string;
+    canonical_name: string;
+    confidence: number;
+  }>;
+  reason: string;
+  review_status: "pending" | "in_review" | "resolved";
 }
 
 export interface ActivityTimelineEvent {
@@ -317,6 +361,52 @@ export interface ReviewDecisionResponse {
   ubid: string | null;
 }
 
+export interface ReviewFeedbackSummary {
+  total_decisions: number;
+  approved_matches: number;
+  rejected_matches: number;
+  insufficient_data: number;
+  top_positive_patterns: string[];
+  top_negative_patterns: string[];
+  system_learning_status: string;
+}
+
+export interface MatchingThresholds {
+  auto_link: {
+    label: string;
+    range: string;
+    min: number;
+    max: number;
+    description: string;
+  };
+  human_review: {
+    label: string;
+    range: string;
+    min: number;
+    max: number;
+    description: string;
+  };
+  keep_separate: {
+    label: string;
+    range: string;
+    min: number;
+    max: number;
+    description: string;
+  };
+  evidence_weights: Array<{
+    signal: string;
+    weight: string;
+  }>;
+  principle: string;
+}
+
+export interface DeactivateLinkResponse {
+  status: string;
+  ubid: string;
+  record_id: string;
+  link: LinkedRecordDetail;
+}
+
 export function fetchReviewQueue(): Promise<ReviewCase[]> {
   return apiFetch<ReviewCase[]>("/api/review-queue");
 }
@@ -339,6 +429,10 @@ export function fetchAuditLogs(): Promise<AuditLog[]> {
 
 export function fetchActivityEvents(): Promise<ActivityEvent[]> {
   return apiFetch<ActivityEvent[]>("/api/activity-events");
+}
+
+export function fetchUnmatchedActivityEvents(): Promise<UnmatchedActivityEvent[]> {
+  return apiFetch<UnmatchedActivityEvent[]>("/api/activity/unmatched-events");
 }
 
 export function runActivityIntelligence(): Promise<ActivityRunResponse> {
@@ -376,6 +470,29 @@ export function fetchMockDatabaseSummary(): Promise<MockDatabaseSummary> {
 
 export function fetchMockDatabaseRecords(): Promise<MockDepartmentRecord[]> {
   return apiFetch<MockDepartmentRecord[]>("/api/mock-database/records");
+}
+
+export function fetchReviewFeedbackSummary(): Promise<ReviewFeedbackSummary> {
+  return apiFetch<ReviewFeedbackSummary>("/api/review-feedback/summary");
+}
+
+export function fetchMatchingThresholds(): Promise<MatchingThresholds> {
+  return apiFetch<MatchingThresholds>("/api/matching/thresholds");
+}
+
+export function deactivateUbidLink(
+  ubid: string,
+  recordId: string,
+  actor: string,
+  reason: string,
+): Promise<DeactivateLinkResponse> {
+  return apiFetch<DeactivateLinkResponse>(
+    `/api/ubids/${encodeURIComponent(ubid)}/links/${encodeURIComponent(recordId)}/deactivate`,
+    {
+      method: "POST",
+      body: JSON.stringify({ actor, reason }),
+    },
+  );
 }
 
 export function submitReviewDecision(

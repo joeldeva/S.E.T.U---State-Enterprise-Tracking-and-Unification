@@ -3,15 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 import {
   fetchAuditLogs,
   fetchMatchCandidates,
+  fetchMatchingThresholds,
   fetchNormalizedRecords,
+  fetchReviewFeedbackSummary,
   fetchReviewQueue,
   fetchSourceRecords,
   fetchUbids,
   type AuditLog,
+  type MatchingThresholds,
   type MatchCandidate,
   type NormalizedRecord,
   type ReviewCase,
   type ReviewDecision,
+  type ReviewFeedbackSummary,
   type SourceRecord,
   type UbidRecord,
   submitReviewDecision,
@@ -134,6 +138,55 @@ const fallbackNormalized: NormalizedRecord[] = [
   },
 ];
 
+const fallbackFeedback: ReviewFeedbackSummary = {
+  total_decisions: 42,
+  approved_matches: 26,
+  rejected_matches: 11,
+  insufficient_data: 5,
+  top_positive_patterns: [
+    "same PIN + high name similarity + licence match",
+    "same address + same owner name",
+  ],
+  top_negative_patterns: [
+    "same name but different PIN",
+    "same address but conflicting GSTIN/PAN",
+  ],
+  system_learning_status: "Simulated feedback loop for prototype",
+};
+
+const fallbackThresholds: MatchingThresholds = {
+  auto_link: {
+    label: "Auto-link",
+    range: "90-100",
+    min: 90,
+    max: 100,
+    description: "Strong deterministic or combined evidence; link can be created with audit history.",
+  },
+  human_review: {
+    label: "Human Review",
+    range: "65-89",
+    min: 65,
+    max: 89,
+    description: "Plausible match with uncertainty or missing evidence; route to reviewer.",
+  },
+  keep_separate: {
+    label: "Keep Separate",
+    range: "below 65",
+    min: 0,
+    max: 64,
+    description: "Evidence is weak or conflicting; do not merge automatically.",
+  },
+  evidence_weights: [
+    { signal: "GSTIN/PAN match", weight: "strong positive" },
+    { signal: "Licence match", weight: "strong positive" },
+    { signal: "Name similarity", weight: "medium positive" },
+    { signal: "Address similarity", weight: "medium positive" },
+    { signal: "PIN/district match", weight: "supporting positive" },
+    { signal: "Conflict penalty", weight: "strong negative" },
+  ],
+  principle: "Thresholds are conservative because a wrong merge is more costly than a missed merge.",
+};
+
 function confidenceColor(confidence: number) {
   if (confidence >= 85) return "#047857";
   if (confidence >= 65) return "#B45309";
@@ -177,6 +230,8 @@ function ReviewQueueScreen() {
   const [ubids, setUbids] = useState<UbidRecord[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [sourceRecords, setSourceRecords] = useState<SourceRecord[]>([]);
+  const [feedbackSummary, setFeedbackSummary] = useState<ReviewFeedbackSummary>(fallbackFeedback);
+  const [thresholds, setThresholds] = useState<MatchingThresholds>(fallbackThresholds);
   const [selectedCaseId, setSelectedCaseId] = useState("review_001");
   const [reason, setReason] = useState("Same address, same sector, strong name similarity");
   const [status, setStatus] = useState("Fallback demo data loaded");
@@ -185,13 +240,15 @@ function ReviewQueueScreen() {
 
   async function refreshData() {
     try {
-      const [queue, matchData, normalizedData, ubidData, auditData, sourceData] = await Promise.all([
+      const [queue, matchData, normalizedData, ubidData, auditData, sourceData, feedbackData, thresholdData] = await Promise.all([
         fetchReviewQueue(),
         fetchMatchCandidates(),
         fetchNormalizedRecords(),
         fetchUbids(),
         fetchAuditLogs(),
         fetchSourceRecords(),
+        fetchReviewFeedbackSummary(),
+        fetchMatchingThresholds(),
       ]);
       const pending = queue.filter((item) => item.review_status === "pending");
       setCases(pending);
@@ -200,6 +257,8 @@ function ReviewQueueScreen() {
       setUbids(ubidData);
       setAuditLogs(auditData);
       setSourceRecords(sourceData);
+      setFeedbackSummary(feedbackData);
+      setThresholds(thresholdData);
       setSelectedCaseId((current) => pending.find((item) => item._id === current)?._id ?? pending[0]?._id ?? "");
       setStatus(`Backend connected - ${pending.length} pending cases`);
       setIsFallback(false);
@@ -210,6 +269,8 @@ function ReviewQueueScreen() {
       setUbids([]);
       setAuditLogs([]);
       setSourceRecords([]);
+      setFeedbackSummary(fallbackFeedback);
+      setThresholds(fallbackThresholds);
       setSelectedCaseId("review_001");
       setStatus("Backend offline - using fallback demo review cases");
       setIsFallback(true);
@@ -282,6 +343,43 @@ function ReviewQueueScreen() {
         <ShieldAlert size={16} aria-hidden="true" />
         <span>{status}</span>
         <strong>{isFallback ? "Demo fallback" : "Backend connected"}</strong>
+      </div>
+
+      <div className="governance-card-grid">
+        <section className="evidence-panel governance-card">
+          <div className="section-title">Reviewer Feedback Learning</div>
+          <div className="learning-stats">
+            <MiniStat label="Decisions" value={feedbackSummary.total_decisions} />
+            <MiniStat label="Approved" value={feedbackSummary.approved_matches} />
+            <MiniStat label="Rejected" value={feedbackSummary.rejected_matches} />
+            <MiniStat label="Insufficient" value={feedbackSummary.insufficient_data} />
+          </div>
+          <p>
+            Reviewer decisions are stored as labelled examples. In production, these recalibrate confidence weights
+            and reduce future manual review load.
+          </p>
+          <div className="pattern-list">
+            {[...feedbackSummary.top_positive_patterns, ...feedbackSummary.top_negative_patterns].map((pattern) => (
+              <span key={pattern}>{pattern}</span>
+            ))}
+          </div>
+          <span className="status-pill sp-review">{feedbackSummary.system_learning_status}</span>
+        </section>
+
+        <section className="evidence-panel governance-card">
+          <div className="section-title">Confidence Thresholds</div>
+          <div className="threshold-grid">
+            <ThresholdItem label={thresholds.auto_link.label} range={thresholds.auto_link.range} tone="sp-active" />
+            <ThresholdItem label={thresholds.human_review.label} range={thresholds.human_review.range} tone="sp-review" />
+            <ThresholdItem label={thresholds.keep_separate.label} range={thresholds.keep_separate.range} tone="sp-closed" />
+          </div>
+          <p>{thresholds.principle}</p>
+          <div className="pattern-list">
+            {thresholds.evidence_weights.map((item) => (
+              <span key={item.signal}>{item.signal}: {item.weight}</span>
+            ))}
+          </div>
+        </section>
       </div>
 
       <div className="review-layout">
@@ -397,6 +495,24 @@ function ReviewQueueScreen() {
         </div>
       </div>
     </section>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="mini-stat">
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function ThresholdItem({ label, range, tone }: { label: string; range: string; tone: string }) {
+  return (
+    <div className="threshold-item">
+      <span className={`status-pill ${tone}`}>{label}</span>
+      <strong>{range}</strong>
+    </div>
   );
 }
 

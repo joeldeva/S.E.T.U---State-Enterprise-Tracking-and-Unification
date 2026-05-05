@@ -14,6 +14,7 @@ UTILITY_EVENTS = {"electricity_usage", "water_usage", "utility_consumption", "lo
 TWELVE_MONTH_DAYS = 365
 EIGHTEEN_MONTH_DAYS = 548
 SIX_MONTH_DAYS = 183
+LOW_CONFIDENCE_JOIN_THRESHOLD = 75
 
 
 def _today() -> date:
@@ -45,6 +46,16 @@ def _days_between(current_date: date, event_date: date | None) -> int | None:
 def _audit_id(ubid: str, status: str, timestamp: str) -> str:
   digest = hashlib.sha1(f"activity:{ubid}:{status}:{timestamp}".encode("utf-8")).hexdigest()[:10]
   return f"audit_activity_{digest}"
+
+
+def is_unmatched_activity_event(event: dict[str, Any]) -> bool:
+  ubid = event.get("ubid")
+  joined_confidence = event.get("joined_confidence")
+  try:
+    confidence = int(joined_confidence) if joined_confidence is not None else 0
+  except (TypeError, ValueError):
+    confidence = 0
+  return not ubid or confidence < LOW_CONFIDENCE_JOIN_THRESHOLD
 
 
 def _status_confidence(status: str, score: int, closure_event: bool, event_count: int) -> int:
@@ -182,20 +193,25 @@ def run_activity_classification(
   current_date: date | None = None,
 ) -> dict[str, Any]:
   events_by_ubid: dict[str, list[dict[str, Any]]] = defaultdict(list)
+  unmatched_by_ubid: Counter[str] = Counter()
   unmatched_events = []
 
   for event in activity_events:
     ubid = event.get("ubid")
+    if is_unmatched_activity_event(event):
+      unmatched_events.append(event)
+      if ubid:
+        unmatched_by_ubid[str(ubid)] += 1
+      continue
+
     if ubid:
       events_by_ubid[str(ubid)].append(event)
-    else:
-      unmatched_events.append(event)
 
   statuses = [
     score_activity_for_ubid(
       ubid=str(ubid_record["_id"]),
       events=events_by_ubid.get(str(ubid_record["_id"]), []),
-      unmatched_event_count=0,
+      unmatched_event_count=unmatched_by_ubid.get(str(ubid_record["_id"]), 0),
       current_date=current_date,
     )
     for ubid_record in ubid_registry

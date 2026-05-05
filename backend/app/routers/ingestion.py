@@ -29,6 +29,7 @@ from ..services.mock_database import (
   mask_department_record,
 )
 from ..services.serialization import serialize_document
+from ..services.ubid_profile import build_ubid_identity_sections
 from ..services.ubid_generator import generate_ubid
 
 router = APIRouter(prefix="/ingestion", tags=["business ingestion"])
@@ -245,6 +246,22 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
   review_status = "pending_review" if ubid_status == "provisional_needs_review" else ubid_status
   masked_records = [mask_department_record(record, include_match_detail=True) for record in matched_records[:12]]
   masked_events = [mask_activity_event(event) for event in activity_events]
+  anchor_type = "GSTIN_HASH" if gstin_hash else "PAN_HASH" if pan_hash else "SELF_SUBMITTED"
+  identity_records = [
+    {
+      "record_id": submission_id,
+      "department": "Self-submitted",
+      "department_record_id": submission_id,
+      "business_name": payload.business_name.strip(),
+      "address": payload.address_line.strip(),
+      "district": _clean(payload.district),
+      "pin_code": payload.pin_code.strip(),
+      "pan_hash": pan_hash,
+      "gstin_hash": gstin_hash,
+    },
+    *masked_records,
+  ]
+  identity_sections = build_ubid_identity_sections(ubid, payload.business_name.strip(), identity_records, anchor_type)
 
   submission = {
     "_id": submission_id,
@@ -315,9 +332,10 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
       "$set": {
         "_id": ubid,
         "canonical_name": payload.business_name.strip(),
-        "anchor_type": "GSTIN_HASH" if gstin_hash else "PAN_HASH",
+        "anchor_type": anchor_type,
         "anchor_hash": anchor_hash,
         "linked_records": [],
+        "linked_record_details": [],
         "candidate_records": [submission_id, *(record.get("record_id", "") for record in matched_records[:12])],
         "current_status": status_label,
         "ubid_status": ubid_status,
@@ -329,6 +347,7 @@ async def create_business_submission(payload: BusinessSubmissionRequest) -> dict
         "created_by": "business_submission",
         "reversible": True,
         "updated_at": timestamp,
+        **identity_sections,
       }
     },
     upsert=True,

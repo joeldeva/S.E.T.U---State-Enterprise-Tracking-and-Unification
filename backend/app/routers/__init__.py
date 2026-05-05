@@ -9,6 +9,7 @@ from .mock_database import router as mock_database_router
 from .queries import router as queries_router
 from .read_only import router as read_only_router
 from .review import router as review_router
+from .ubids import router as ubids_router
 
 api_router = APIRouter()
 api_router.include_router(activity_router)
@@ -20,3 +21,4 @@ api_router.include_router(mock_database_router)
 api_router.include_router(queries_router)
 api_router.include_router(read_only_router)
 api_router.include_router(review_router)
+api_router.include_router(ubids_router)

@@ -172,8 +172,9 @@ function BusinessRegistrationScreen() {
       </div>
 
       <div className="mock-db-note">
-        This prototype checks submissions against a synthetic CSV-based department database. Production deployment would
-        connect to authorized department APIs, secure data pipelines, or scheduled department exports.
+        Prototype uses CSV/Excel-style synthetic department data. Production deployment would use authorized department APIs,
+        secure data pipelines, or scheduled exports from e-Karmika, Factories/e-Suraksha, KSPCB, BESCOM/BWSSB,
+        and local-body systems.
         Karnataka department forms may omit PAN/GSTIN, so SETU can also use licence numbers, local identifiers, names,
         addresses, PIN code, district, owner details, and contact references for matching.
       </div>

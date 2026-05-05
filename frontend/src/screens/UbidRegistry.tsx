@@ -1,7 +1,8 @@
 import { ExternalLink, GitFork, History, ShieldCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { seedBusinesses } from "../data/seedBusinesses";
-import type { BusinessRecord, BusinessStatus, ScreenId } from "../types";
+import { deactivateUbidLink } from "../lib/api";
+import type { BusinessRecord, BusinessStatus, DepartmentSource, ScreenId } from "../types";
 
 interface UbidRegistryProps {
   onNavigate: (screen: ScreenId) => void;
@@ -118,6 +119,38 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
   const linked = business.sources.filter((source) => source.status === "linked").length;
   const partial = business.sources.filter((source) => source.status === "partial").length;
   const missing = business.sources.length - linked - partial;
+  const [deactivatedLinks, setDeactivatedLinks] = useState<Set<string>>(new Set());
+  const [pendingDeactivate, setPendingDeactivate] = useState<DepartmentSource | null>(null);
+  const [linkActionStatus, setLinkActionStatus] = useState("");
+
+  function linkKey(source: DepartmentSource) {
+    return `${business.ubid}:${source.sourceRecordId ?? source.id}`;
+  }
+
+  async function confirmDeactivateLink() {
+    if (!pendingDeactivate) return;
+
+    const recordId = pendingDeactivate.sourceRecordId;
+    const reason = "Wrong merge identified during review";
+
+    try {
+      if (recordId) {
+        await deactivateUbidLink(business.ubid, recordId, "Reviewer Demo", reason);
+        setLinkActionStatus(`${pendingDeactivate.name} link deactivated and audit log written.`);
+      } else {
+        setLinkActionStatus(`${pendingDeactivate.name} link deactivated in demo mode.`);
+      }
+    } catch {
+      setLinkActionStatus(`${pendingDeactivate.name} link marked deactivated in demo mode; backend audit placeholder preserved.`);
+    }
+
+    setDeactivatedLinks((current) => {
+      const next = new Set(current);
+      next.add(linkKey(pendingDeactivate));
+      return next;
+    });
+    setPendingDeactivate(null);
+  }
 
   return (
     <>
@@ -166,17 +199,41 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
           </div>
         </div>
 
+        <div className="identity-distinction-grid">
+          <section className="identity-section">
+            <div className="section-title">Legal Entity Anchor</div>
+            <div className="identity-meta">
+              <MetaCell label="PAN status" value={`Hash present (${displayHash(business.panHash)})`} />
+              <MetaCell label="GSTIN status" value={`Hash present (${displayHash(business.gstinHash)})`} />
+              <MetaCell label="Anchor status" value={business.anchorType === "Synthetic" ? "conflict" : "verified_mock"} />
+            </div>
+          </section>
+          <section className="identity-section">
+            <div className="section-title">Establishment / Operating Unit UBID</div>
+            <div className="identity-meta">
+              <MetaCell label="UBID" value={business.ubid} />
+              <MetaCell label="Operating unit" value={business.name} />
+              <MetaCell label="Primary location" value={`${business.district} / ${business.pinCode}`} />
+              <MetaCell label="Department records" value={`${linked} linked`} />
+            </div>
+          </section>
+        </div>
+        <div className="identity-note">
+          PAN/GSTIN may identify the legal/tax entity. UBID identifies the operating business establishment across
+          department systems.
+        </div>
+
         <div>
           <div className="section-title">
             Department source links - {linked} linked / {partial} partial / {missing} missing
           </div>
           <div className="sources-grid">
-            {business.sources.map((source) => (
-              <button
-                className={`source-row ${source.status}`}
+            {business.sources.map((source) => {
+              const isDeactivated = deactivatedLinks.has(linkKey(source));
+              return (
+              <div
+                className={`source-row ${source.status} ${isDeactivated ? "deactivated-link" : ""}`}
                 key={`${business.ubid}-${source.name}`}
-                type="button"
-                onClick={() => onNavigate(source.status === "partial" ? "review" : "graph")}
               >
                 <div
                   className="src-icon"
@@ -200,12 +257,36 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
                     <div className="src-conf missing-conf">None</div>
                   )}
                   <div className="src-date">{source.date}</div>
-                  <div className={`src-link-badge slb-${source.status}`}>{source.status}</div>
+                  <div className={`src-link-badge ${isDeactivated ? "slb-missing" : `slb-${source.status}`}`}>
+                    {isDeactivated ? "Deactivated Link" : "Active Link"}
+                  </div>
+                  <div className="source-actions">
+                    <button
+                      className="panel-link"
+                      type="button"
+                      onClick={() => onNavigate(source.status === "partial" ? "review" : "graph")}
+                    >
+                      Open
+                    </button>
+                    {source.status !== "missing" ? (
+                      <button
+                        className="btn-ghost compact-action danger-action"
+                        type="button"
+                        onClick={() => setPendingDeactivate(source)}
+                        disabled={isDeactivated}
+                      >
+                        Deactivate Link
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
-              </button>
-            ))}
+              </div>
+              );
+            })}
           </div>
         </div>
+
+        {linkActionStatus ? <div className="review-refresh-note">{linkActionStatus}</div> : null}
 
         <div className="two-column-detail">
           <div>
@@ -282,6 +363,29 @@ function BusinessDetail({ business, onNavigate }: BusinessDetailProps) {
           ) : null}
         </div>
       </div>
+
+      {pendingDeactivate ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deactivateLinkTitle">
+          <div className="modal-panel">
+            <h2 id="deactivateLinkTitle">Deactivate Link</h2>
+            <p>
+              This will not delete the source record. It only deactivates this link and preserves audit history.
+            </p>
+            <div className="modal-record">
+              <span>{pendingDeactivate.name}</span>
+              <strong>{pendingDeactivate.sourceRecordId ?? pendingDeactivate.id}</strong>
+            </div>
+            <div className="action-row">
+              <button className="btn-ghost" type="button" onClick={() => setPendingDeactivate(null)}>
+                Cancel
+              </button>
+              <button className="btn-primary" type="button" onClick={() => void confirmDeactivateLink()}>
+                Deactivate Link
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
