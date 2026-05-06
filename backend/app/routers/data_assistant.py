@@ -9,8 +9,9 @@ router = APIRouter(prefix="/assistant", tags=["data assistant"])
 class AssistantRequest(BaseModel):
   message: str = Field(..., min_length=1, max_length=500)
   limit: int = Field(default=120, ge=1, le=500)
+  context: dict | None = None
 
 
 @router.post("/query")
 async def query_data_assistant(request: AssistantRequest) -> dict:
-  return answer_data_question(request.message, request.limit)
+  return answer_data_question(request.message, request.limit, request.context)

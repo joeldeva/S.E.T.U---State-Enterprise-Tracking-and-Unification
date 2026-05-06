@@ -7,10 +7,12 @@ import {
   SearchCheck,
   SendHorizontal,
   ShieldCheck,
+  Sparkles,
   Table2,
+  X,
 } from "lucide-react";
 import { FormEvent, useMemo, useRef, useState } from "react";
-import { askDataAssistant, type AssistantColumn, type AssistantResponse } from "../lib/api";
+import { askDataAssistant, type AssistantColumn, type AssistantContext, type AssistantResponse } from "../lib/api";
 
 interface ChatMessage {
   id: string;
@@ -28,7 +30,7 @@ const examplePrompts = [
 ];
 
 const introMessage =
-  "Ask me for masked mock database records by PIN, department, status, business name, licence number, consumer number, PAN/GSTIN, or activity event. I query the SETU backend directly and never reveal raw PAN/GSTIN.";
+  "Ask me naturally. I retrieve relevant masked rows from the SETU backend, ground the answer in source records, and remember context for follow-ups like 'now only BESCOM'.";
 
 function csvEscape(value: unknown) {
   const text = String(value ?? "");
@@ -96,6 +98,7 @@ function DataAssistantScreen() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [latestResponse, setLatestResponse] = useState<AssistantResponse | null>(null);
+  const [assistantContext, setAssistantContext] = useState<AssistantContext | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const visibleSummary = useMemo(() => {
@@ -120,8 +123,9 @@ function DataAssistantScreen() {
     setIsLoading(true);
 
     try {
-      const response = await askDataAssistant(trimmed, 500);
+      const response = await askDataAssistant(trimmed, 500, assistantContext);
       setLatestResponse(response);
+      setAssistantContext(response.context);
       setMessages((current) => [
         ...current,
         { id: `${Date.now()}-assistant`, role: "assistant", text: response.answer },
@@ -146,6 +150,19 @@ function DataAssistantScreen() {
     void runPrompt(input);
   }
 
+  function clearAssistantContext() {
+    setAssistantContext(null);
+    setLatestResponse(null);
+    setMessages([
+      {
+        id: "intro-reset",
+        role: "assistant",
+        text: "Context cleared. Ask a fresh question over department records or activity events.",
+      },
+    ]);
+    inputRef.current?.focus();
+  }
+
   const compactColumns = latestResponse ? firstVisibleColumns(latestResponse.columns) : [];
 
   return (
@@ -159,7 +176,7 @@ function DataAssistantScreen() {
             <p className="eyebrow">Backend-powered data chatbot</p>
             <h1>SETU Data Assistant</h1>
             <p>
-              Ask natural questions over masked department records and activity events without sending raw identifiers to any hosted LLM.
+              RAG-style retrieval over masked department records and activity events without sending raw identifiers to any hosted LLM.
             </p>
           </div>
         </div>
@@ -173,8 +190,8 @@ function DataAssistantScreen() {
             Masked PAN/GSTIN only
           </span>
           <span>
-            <SearchCheck size={14} aria-hidden="true" />
-            Deterministic filters
+            <Sparkles size={14} aria-hidden="true" />
+            Local RAG retrieval
           </span>
         </div>
       </div>
@@ -182,9 +199,23 @@ function DataAssistantScreen() {
       <div className="assistant-layout">
         <div className="assistant-chat-panel">
           <div className="panel-header">
-            <span className="panel-title">Interactive query</span>
-            <span className="panel-count">No hosted LLM calls</span>
+            <span className="panel-title">Interactive retrieval chat</span>
+            <span className="panel-count">Context-aware</span>
           </div>
+
+          {assistantContext ? (
+            <div className="assistant-context-bar">
+              <div>
+                <SearchCheck size={13} aria-hidden="true" />
+                <span>
+                  Context: {assistantContext.pin_codes[0] ?? assistantContext.departments[0] ?? assistantContext.terms[0] ?? assistantContext.dataset}
+                </span>
+              </div>
+              <button type="button" onClick={clearAssistantContext} aria-label="Clear assistant context">
+                <X size={13} aria-hidden="true" />
+              </button>
+            </div>
+          ) : null}
 
           <div className="assistant-messages">
             {messages.map((message) => (
@@ -206,7 +237,7 @@ function DataAssistantScreen() {
           </div>
 
           <div className="assistant-examples">
-            {examplePrompts.map((prompt) => (
+            {(latestResponse?.suggestions.length ? latestResponse.suggestions : examplePrompts).map((prompt) => (
               <button type="button" key={prompt} onClick={() => void runPrompt(prompt)} disabled={isLoading}>
                 {prompt}
               </button>
@@ -232,7 +263,7 @@ function DataAssistantScreen() {
           <div className="panel-header">
             <span className="panel-title">Backend result workspace</span>
             <span className="panel-count">
-              {latestResponse ? `${latestResponse.returned_count}/${latestResponse.total_matches} returned` : "Waiting for query"}
+              {latestResponse ? `${latestResponse.returned_count}/${latestResponse.total_matches} grounded rows` : "Waiting for query"}
             </span>
           </div>
 
@@ -250,10 +281,15 @@ function DataAssistantScreen() {
                   <small>Backend response</small>
                 </div>
                 <div className="assistant-metric">
-                  <span>Columns</span>
-                  <strong>{latestResponse.columns.length}</strong>
-                  <small>Privacy-safe fields</small>
+                  <span>Sources</span>
+                  <strong>{latestResponse.sources.length}</strong>
+                  <small>Grounded citations</small>
                 </div>
+              </div>
+
+              <div className="assistant-mode-line">
+                <span>{latestResponse.retrieval_mode.replace(/_/g, " ")}</span>
+                <strong>No hosted LLM used</strong>
               </div>
 
               {latestResponse.filters.length ? (
@@ -277,6 +313,21 @@ function DataAssistantScreen() {
                       ))}
                     </div>
                   ))}
+                </div>
+              ) : null}
+
+              {latestResponse.sources.length ? (
+                <div className="assistant-source-list">
+                  <span className="section-title">Grounded sources</span>
+                  <div>
+                    {latestResponse.sources.map((source) => (
+                      <article key={`${source.source_type}-${source.id}`}>
+                        <strong>{source.id}</strong>
+                        <span>{source.title}</span>
+                        <em>{source.department} · {source.why} · {source.score}%</em>
+                      </article>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 

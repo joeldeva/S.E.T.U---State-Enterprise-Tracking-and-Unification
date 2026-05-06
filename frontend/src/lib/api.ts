@@ -455,6 +455,24 @@ export interface AssistantColumn {
   label: string;
 }
 
+export interface AssistantSource {
+  id: string;
+  title: string;
+  department: string;
+  source_type: "department_record" | "activity_event";
+  score: number;
+  why: string;
+}
+
+export interface AssistantContext {
+  dataset: "department_records" | "activity_events";
+  intent: string;
+  pin_codes: string[];
+  departments: string[];
+  statuses: string[];
+  terms: string[];
+}
+
 export interface AssistantResponse {
   answer: string;
   intent: string;
@@ -465,6 +483,9 @@ export interface AssistantResponse {
   columns: AssistantColumn[];
   rows: Array<Record<string, string | number | boolean | null | undefined>>;
   summary: Record<string, unknown>;
+  sources: AssistantSource[];
+  context: AssistantContext;
+  retrieval_mode: string;
   suggestions: string[];
   privacy_note: string;
 }
@@ -555,10 +576,14 @@ export function fetchMatchingThresholds(): Promise<MatchingThresholds> {
   return apiFetch<MatchingThresholds>("/api/matching/thresholds");
 }
 
-export function askDataAssistant(message: string, limit = 500): Promise<AssistantResponse> {
+export function askDataAssistant(
+  message: string,
+  limit = 500,
+  context?: AssistantContext | null,
+): Promise<AssistantResponse> {
   return apiFetch<AssistantResponse>("/api/assistant/query", {
     method: "POST",
-    body: JSON.stringify({ message, limit }),
+    body: JSON.stringify({ message, limit, context }),
   });
 }
 
