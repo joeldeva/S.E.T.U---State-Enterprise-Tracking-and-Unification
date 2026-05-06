@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
@@ -16,33 +17,45 @@ _database: AsyncIOMotorDatabase | Any | None = None
 _database_mode = "disconnected"
 
 
-async def connect_to_mongo() -> None:
+async def _connect_to_mock_database() -> None:
   global _client, _database, _database_mode
-  if _client is not None and _database is not None:
-    return
-
-  _client = AsyncIOMotorClient(settings.mongodb_uri, serverSelectionTimeoutMS=2000)
-  _database = _client[settings.mongodb_db]
-  for attempt in range(10):
-    try:
-      await _database.command("ping")
-      _database_mode = "mongodb"
-      return
-    except ServerSelectionTimeoutError:
-      if attempt == 9:
-        break
-      await asyncio.sleep(1)
-
   if AsyncMongoMockClient is None:
     raise RuntimeError(
       "MongoDB is unavailable and mongomock-motor is not installed. "
-      "Install dependencies or start MongoDB.",
+      "Install dependencies or configure MONGODB_URI.",
     )
 
   _client = AsyncMongoMockClient()
   _database = _client[settings.mongodb_db]
   await _database.command("ping")
   _database_mode = "mock"
+
+
+async def connect_to_mongo() -> None:
+  global _client, _database, _database_mode
+  if _client is not None and _database is not None:
+    return
+
+  configured_uri = os.getenv("MONGODB_URI", "").strip()
+  if not configured_uri:
+    await _connect_to_mock_database()
+    return
+
+  _client = AsyncIOMotorClient(configured_uri, serverSelectionTimeoutMS=1500)
+  _database = _client[settings.mongodb_db]
+  for attempt in range(2):
+    try:
+      await _database.command("ping")
+      _database_mode = "mongodb"
+      return
+    except ServerSelectionTimeoutError:
+      if attempt == 1:
+        break
+      await asyncio.sleep(0.5)
+
+  if _client is not None and hasattr(_client, "close"):
+    _client.close()
+  await _connect_to_mock_database()
 
 
 async def close_mongo_connection() -> None:

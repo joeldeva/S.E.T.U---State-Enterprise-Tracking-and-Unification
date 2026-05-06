@@ -39,7 +39,7 @@ const totalColumnWidth = columns.reduce((total, column) => total + column.width,
 const columnLeftOffsets = columns.map((_, index) =>
   columns.slice(0, index).reduce((total, column) => total + column.width, 0),
 );
-const backendLoadTimeoutMs = 8000;
+const backendLoadTimeoutMs = 15000;
 
 function columnStyle(index: number): CSSProperties {
   const width = columns[index].width;
@@ -97,33 +97,31 @@ function MockSpreadsheetScreen({ onNavigate }: MockSpreadsheetScreenProps) {
 
   useEffect(() => {
     let cancelled = false;
-    let fallbackLoaded = false;
 
     async function loadRecords() {
-      try {
-        const fallbackRecords = await fetchStaticMockRecords();
-        if (!cancelled && fallbackRecords.length) {
-          fallbackLoaded = true;
-          setRecords(fallbackRecords);
-          setStatusText(`${fallbackRecords.length} masked mock CSV records loaded from static fallback`);
-        }
-      } catch {
-        fallbackLoaded = false;
-      }
-
       try {
         const backendRecords = await withTimeout(fetchMockDatabaseRecords(500), backendLoadTimeoutMs);
         if (!cancelled && backendRecords.length) {
           setRecords(backendRecords);
           setStatusText(`${backendRecords.length} masked mock CSV records loaded from backend`);
+          return;
+        }
+        throw new Error("Backend returned no records");
+      } catch {
+        if (!cancelled) {
+          setStatusText("Backend did not return mock CSV records - loading emergency local copy");
+        }
+      }
+
+      try {
+        const fallbackRecords = await fetchStaticMockRecords();
+        if (!cancelled && fallbackRecords.length) {
+          setRecords(fallbackRecords);
+          setStatusText(`${fallbackRecords.length} masked mock CSV records loaded from emergency local copy`);
         }
       } catch {
         if (!cancelled) {
-          setStatusText(
-            fallbackLoaded
-              ? "Static mock CSV loaded - backend is still warming"
-              : "Mock CSV records could not be loaded",
-          );
+          setStatusText("Mock CSV records could not be loaded");
         }
       }
     }
