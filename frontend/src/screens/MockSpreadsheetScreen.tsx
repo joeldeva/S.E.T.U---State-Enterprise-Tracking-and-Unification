@@ -39,6 +39,7 @@ const totalColumnWidth = columns.reduce((total, column) => total + column.width,
 const columnLeftOffsets = columns.map((_, index) =>
   columns.slice(0, index).reduce((total, column) => total + column.width, 0),
 );
+const backendLoadTimeoutMs = 8000;
 
 function columnStyle(index: number): CSSProperties {
   const width = columns[index].width;
@@ -66,6 +67,27 @@ function downloadMaskedCsv(records: MockDepartmentRecord[]) {
   URL.revokeObjectURL(url);
 }
 
+async function fetchStaticMockRecords() {
+  const response = await fetch("/mock-data/masked_department_business_records.json", {
+    cache: "force-cache",
+  });
+  if (!response.ok) {
+    throw new Error(`Static mock records failed with ${response.status}`);
+  }
+  const body = (await response.json()) as unknown;
+  return Array.isArray(body) ? (body as MockDepartmentRecord[]) : [];
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => reject(new Error("Request timed out")), timeoutMs);
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(() => window.clearTimeout(timeoutId));
+  });
+}
+
 function MockSpreadsheetScreen({ onNavigate }: MockSpreadsheetScreenProps) {
   const [records, setRecords] = useState<MockDepartmentRecord[]>([]);
   const [query, setQuery] = useState("");
@@ -74,15 +96,42 @@ function MockSpreadsheetScreen({ onNavigate }: MockSpreadsheetScreenProps) {
   const topScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchMockDatabaseRecords(500)
-      .then((items) => {
-        setRecords(items);
-        setStatusText(`${items.length} masked mock CSV records loaded`);
-      })
-      .catch(() => {
-        setRecords([]);
-        setStatusText("Mock CSV records could not be loaded from backend");
-      });
+    let cancelled = false;
+    let fallbackLoaded = false;
+
+    async function loadRecords() {
+      try {
+        const fallbackRecords = await fetchStaticMockRecords();
+        if (!cancelled && fallbackRecords.length) {
+          fallbackLoaded = true;
+          setRecords(fallbackRecords);
+          setStatusText(`${fallbackRecords.length} masked mock CSV records loaded from static fallback`);
+        }
+      } catch {
+        fallbackLoaded = false;
+      }
+
+      try {
+        const backendRecords = await withTimeout(fetchMockDatabaseRecords(500), backendLoadTimeoutMs);
+        if (!cancelled && backendRecords.length) {
+          setRecords(backendRecords);
+          setStatusText(`${backendRecords.length} masked mock CSV records loaded from backend`);
+        }
+      } catch {
+        if (!cancelled) {
+          setStatusText(
+            fallbackLoaded
+              ? "Static mock CSV loaded - backend is still warming"
+              : "Mock CSV records could not be loaded",
+          );
+        }
+      }
+    }
+
+    void loadRecords();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredRecords = useMemo(() => {
