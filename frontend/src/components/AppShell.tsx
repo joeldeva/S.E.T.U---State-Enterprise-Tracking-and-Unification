@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Download, Search, X } from "lucide-react";
 import type { ReactNode } from "react";
+import FloatingDataAssistant from "./FloatingDataAssistant";
 import type { ScreenDefinition, ScreenId } from "../types";
 
 interface GuidedDemoState {
@@ -124,6 +125,7 @@ function AppShell({
 
         <div className="content">{children}</div>
       </main>
+      <FloatingDataAssistant />
     </div>
   );
 }

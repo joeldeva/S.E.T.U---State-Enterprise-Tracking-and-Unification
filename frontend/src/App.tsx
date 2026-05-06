@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity,
   BarChart3,
-  Bot,
   ClipboardCheck,
   FileSearch,
   FileSpreadsheet,
@@ -21,7 +20,6 @@ import ActivityIntelligenceScreen from "./screens/ActivityIntelligenceScreen";
 import AuditLogsScreen from "./screens/AuditLogsScreen";
 import BiQueryEngineScreen from "./screens/BiQueryEngineScreen";
 import BusinessRegistrationScreen from "./screens/BusinessRegistrationScreen";
-import DataAssistantScreen from "./screens/DataAssistantScreen";
 import EntityResolutionScreen from "./screens/EntityResolutionScreen";
 import ExecutiveDashboardScreen from "./screens/ExecutiveDashboardScreen";
 import IdentityGraphScreen from "./screens/IdentityGraphScreen";
@@ -39,7 +37,6 @@ const screens: ScreenDefinition[] = [
   { id: "ubid", label: "UBID Registry", icon: Fingerprint, section: "Core" },
   { id: "review", label: "Review Queue", icon: ClipboardCheck, section: "Governance", badge: "12" },
   { id: "activity", label: "Activity Intelligence", icon: Activity, section: "Intelligence" },
-  { id: "assistant", label: "SETU Data Assistant", icon: Bot, section: "Intelligence" },
   { id: "queries", label: "BI Query Engine", icon: FileSearch, section: "Intelligence" },
   { id: "graph", label: "Identity Graph", icon: GitFork, section: "Intelligence" },
   { id: "map", label: "PIN-code Map", icon: MapPinned, section: "Intelligence" },
@@ -54,7 +51,6 @@ const placeholderCopy: Record<Exclude<ScreenId, "ubid">, string> = {
   resolution: "Explainable match candidates using deterministic anchors, fuzzy scores, conflict checks, and decision zones.",
   review: "Officer workflow for ambiguous cases with approve, reject, attach, create UBID, and audit actions.",
   activity: "Active, Dormant, Closed, and Insufficient Data classification from filings, renewals, inspections, and utility signals.",
-  assistant: "Backend-powered chatbot for privacy-safe natural-language queries over masked mock department records and activity events.",
   queries: "Government intelligence questions such as active factories in PIN 560058 with no inspection in the last 18 months.",
   graph: "UBID-centered identity graph with department records as explainable linked nodes.",
   map: "PIN-code level business density, status clusters, inspection gaps, and department coverage gaps.",
@@ -154,8 +150,6 @@ function App() {
                   <ReviewQueueScreen />
                 ) : activeScreen === "activity" ? (
                   <ActivityIntelligenceScreen />
-                ) : activeScreen === "assistant" ? (
-                  <DataAssistantScreen />
                 ) : activeScreen === "queries" ? (
                   <BiQueryEngineScreen />
                 ) : activeScreen === "graph" ? (
