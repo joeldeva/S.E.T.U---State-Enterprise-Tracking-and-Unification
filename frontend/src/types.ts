@@ -11,6 +11,7 @@ export type ScreenId =
   | "resolution"
   | "review"
   | "activity"
+  | "assistant"
   | "queries"
   | "graph"
   | "map"

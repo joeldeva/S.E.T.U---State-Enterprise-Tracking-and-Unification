@@ -16,6 +16,7 @@ export const guidedDemoSteps: DemoStep[] = [
   { id: "review", label: "Reviewer queue" },
   { id: "ubid", label: "UBID registry" },
   { id: "activity", label: "Activity intelligence" },
+  { id: "assistant", label: "SETU data assistant" },
   { id: "queries", label: "BI query engine" },
   { id: "graph", label: "Identity graph" },
   { id: "map", label: "PIN-code map" },
@@ -62,6 +63,11 @@ export const moduleNarratives: Record<ScreenId, ModuleNarrative> = {
     proves: "Business status is inferred from explainable events, not guessed.",
     matters: "Active, Dormant, Closed, and Insufficient Data labels help prioritize inspections and cleanup.",
     satisfies: "Each status shows score, confidence, evidence timeline, unmatched events, and audit updates.",
+  },
+  assistant: {
+    proves: "Officers can ask plain-language questions over backend records without exposing raw PAN or GSTIN.",
+    matters: "A data assistant makes the mock database demo faster because PIN, department, status, licence, and event queries are interactive.",
+    satisfies: "Responses come from deterministic backend filters, return masked rows, and do not use hosted LLM calls.",
   },
   queries: {
     proves: "UBID linkage unlocks cross-department intelligence queries that were previously hard to ask.",

@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from .activity import router as activity_router
+from .data_assistant import router as data_assistant_router
 from .dashboard import router as dashboard_router
 from .ingestion import router as ingestion_router
 from .map import router as map_router
@@ -13,6 +14,7 @@ from .ubids import router as ubids_router
 
 api_router = APIRouter()
 api_router.include_router(activity_router)
+api_router.include_router(data_assistant_router)
 api_router.include_router(dashboard_router)
 api_router.include_router(ingestion_router)
 api_router.include_router(map_router)

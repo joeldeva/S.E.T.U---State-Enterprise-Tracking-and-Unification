@@ -450,6 +450,25 @@ export interface DeactivateLinkResponse {
   link: LinkedRecordDetail;
 }
 
+export interface AssistantColumn {
+  key: string;
+  label: string;
+}
+
+export interface AssistantResponse {
+  answer: string;
+  intent: string;
+  dataset: "department_records" | "activity_events";
+  filters: string[];
+  total_matches: number;
+  returned_count: number;
+  columns: AssistantColumn[];
+  rows: Array<Record<string, string | number | boolean | null | undefined>>;
+  summary: Record<string, unknown>;
+  suggestions: string[];
+  privacy_note: string;
+}
+
 export function fetchReviewQueue(): Promise<ReviewCase[]> {
   return apiFetch<ReviewCase[]>("/api/review-queue");
 }
@@ -534,6 +553,13 @@ export function fetchReviewFeedbackSummary(): Promise<ReviewFeedbackSummary> {
 
 export function fetchMatchingThresholds(): Promise<MatchingThresholds> {
   return apiFetch<MatchingThresholds>("/api/matching/thresholds");
+}
+
+export function askDataAssistant(message: string, limit = 500): Promise<AssistantResponse> {
+  return apiFetch<AssistantResponse>("/api/assistant/query", {
+    method: "POST",
+    body: JSON.stringify({ message, limit }),
+  });
 }
 
 export function deactivateUbidLink(
