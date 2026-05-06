@@ -4786,25 +4786,59 @@ body {
 }
 
 .floating-assistant-launcher {
-  border: 1px solid rgba(37, 99, 235, 0.22);
-  border-radius: 999px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 1px solid rgba(37, 99, 235, 0.28);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 34%),
+    linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #ffffff;
-  box-shadow: 0 16px 40px rgba(37, 99, 235, 0.34);
+  box-shadow: 0 20px 52px rgba(37, 99, 235, 0.42);
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  min-height: 48px;
-  padding: 0 18px;
+  gap: 12px;
+  min-height: 76px;
+  min-width: 218px;
+  padding: 12px 18px 12px 14px;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 800;
   letter-spacing: 0;
+  text-align: left;
 }
 
 .floating-assistant-launcher:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 20px 44px rgba(37, 99, 235, 0.42);
+  transform: translateY(-2px);
+  box-shadow: 0 24px 58px rgba(37, 99, 235, 0.52);
+}
+
+.floating-launcher-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.17);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.floating-launcher-copy {
+  display: grid;
+  gap: 1px;
+}
+
+.floating-launcher-copy strong {
+  color: #ffffff;
+  font-size: 19px;
+  line-height: 1.05;
+  font-weight: 900;
+}
+
+.floating-launcher-copy small {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .floating-assistant-panel {
@@ -5796,6 +5830,22 @@ body {
     width: calc(100vw - 24px);
     min-height: 0;
     max-height: calc(100vh - 84px);
+  }
+
+  .floating-assistant-launcher {
+    min-width: 190px;
+    min-height: 66px;
+    border-radius: 16px;
+    padding: 10px 14px 10px 12px;
+  }
+
+  .floating-launcher-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .floating-launcher-copy strong {
+    font-size: 17px;
   }
 
   .floating-summary-list,

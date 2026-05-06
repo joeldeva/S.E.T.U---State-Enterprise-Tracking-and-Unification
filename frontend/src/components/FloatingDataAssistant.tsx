@@ -10,7 +10,7 @@ import {
   Table2,
   X,
 } from "lucide-react";
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { askDataAssistant, type AssistantContext, type AssistantResponse } from "../lib/api";
 
 interface ChatMessage {
@@ -85,6 +85,7 @@ function FloatingDataAssistant() {
     { id: "intro", role: "assistant", text: introMessage },
   ]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const summaryCards = useMemo(() => {
     if (!latestResponse) return [];
@@ -95,6 +96,17 @@ function FloatingDataAssistant() {
       { label: "Events", value: latestResponse.summary.by_event_type },
     ].filter((item) => countEntries(item.value).length);
   }, [latestResponse]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 80);
+    return () => window.clearTimeout(focusTimer);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isLoading, isOpen]);
 
   async function runPrompt(prompt: string) {
     const trimmed = prompt.trim();
@@ -190,6 +202,7 @@ function FloatingDataAssistant() {
                 <p>Retrieving grounded backend rows...</p>
               </div>
             ) : null}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="floating-assistant-prompts">
@@ -235,9 +248,9 @@ function FloatingDataAssistant() {
 
               {latestResponse.sources.length ? (
                 <div className="floating-sources">
-                  {latestResponse.sources.slice(0, 3).map((source) => (
-                    <span key={`${source.source_type}-${source.id}`}>
-                      {source.id} - {source.department}
+                    {latestResponse.sources.slice(0, 3).map((source) => (
+                      <span key={`${source.source_type}-${source.id}`}>
+                        {source.id} - {source.department}
                     </span>
                   ))}
                 </div>
@@ -301,8 +314,13 @@ function FloatingDataAssistant() {
       ) : null}
 
       <button className="floating-assistant-launcher" type="button" onClick={() => setIsOpen(true)}>
-        <Bot size={20} aria-hidden="true" />
-        <span>Ask SETU</span>
+        <span className="floating-launcher-icon">
+          <Bot size={28} aria-hidden="true" />
+        </span>
+        <span className="floating-launcher-copy">
+          <strong>Ask SETU</strong>
+          <small>Virtual data assistant</small>
+        </span>
       </button>
     </div>
   );
